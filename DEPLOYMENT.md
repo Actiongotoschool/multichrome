@@ -76,6 +76,16 @@ Key build settings in `vite.config.js`:
 
 ## Troubleshooting
 
+### Workflow Never Triggered
+
+If the deployment workflow exists but has never run:
+
+1. **Initial Setup Issue**: When a workflow file is first added to a repository, it only triggers on subsequent pushes/events after being merged to the main branch.
+2. **Solution**: Make any commit to the main branch to trigger the workflow, or manually trigger it:
+   - Go to Actions tab → Select "Deploy to GitHub Pages" workflow
+   - Click "Run workflow" → Select `main` branch → Click "Run workflow"
+3. The `.nojekyll` file in the `public/` directory ensures GitHub Pages doesn't process files with Jekyll (best practice for Vite apps)
+
 ### Deployment Fails
 
 1. **Check workflow logs**: Go to Actions tab and check the failed workflow run
@@ -96,6 +106,7 @@ If images, CSS, or JavaScript files are not loading:
 1. Verify the base path in `vite.config.js` matches your repository name
 2. Check browser console for 404 errors
 3. Ensure all assets are included in the build output (`dist/` folder)
+4. Verify `.nojekyll` file exists in the `dist/` folder after build (prevents Jekyll processing)
 
 ## Development vs Production
 
