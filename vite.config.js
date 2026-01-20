@@ -40,7 +40,7 @@ export default defineConfig({
                     },
                 ],
             },
-            includeAssets: ['instances.json', 'discord.html'],
+            includeAssets: ['instances.json', 'discord.html', '.nojekyll'],
             manifest: false, // Use existing public/manifest.json
         }),
     ],
