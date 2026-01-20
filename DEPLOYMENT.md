@@ -18,19 +18,19 @@ The project is configured to automatically deploy to GitHub Pages at `https://ac
 The deployment is handled by the GitHub Actions workflow located at `.github/workflows/deploy.yml`. This workflow:
 
 1. **Triggers** on:
-   - Push to `main` branch
-   - Manual workflow dispatch
+    - Push to `main` branch
+    - Manual workflow dispatch
 
 2. **Build Process**:
-   - Checks out the code
-   - Sets up Node.js v22
-   - Installs dependencies with `npm ci`
-   - Builds the project with `npm run build`
-   - Outputs to `dist/` directory
+    - Checks out the code
+    - Sets up Node.js v22
+    - Installs dependencies with `npm ci`
+    - Builds the project with `npm run build`
+    - Outputs to `dist/` directory
 
 3. **Deployment**:
-   - Uploads the `dist/` folder as a GitHub Pages artifact
-   - Deploys to GitHub Pages using the official `actions/deploy-pages@v4` action
+    - Uploads the `dist/` folder as a GitHub Pages artifact
+    - Deploys to GitHub Pages using the official `actions/deploy-pages@v4` action
 
 ### Enabling GitHub Pages
 
@@ -39,7 +39,7 @@ To enable GitHub Pages for your repository:
 1. Navigate to your repository on GitHub
 2. Click on **Settings** → **Pages**
 3. Under **Build and deployment**:
-   - **Source**: Select "GitHub Actions"
+    - **Source**: Select "GitHub Actions"
 4. Save the changes
 
 That's it! The next push to `main` will trigger an automatic deployment.
@@ -61,7 +61,7 @@ You can manually trigger a deployment at any time:
 The application is configured to work with the GitHub Pages subdirectory structure. The base path is set in `vite.config.js`:
 
 ```javascript
-base: '/multichrome/'
+base: '/multichrome/';
 ```
 
 This ensures all asset URLs are correctly prefixed for the subdirectory deployment at `https://actiongotoschool.github.io/multichrome/`.
@@ -82,16 +82,16 @@ If the deployment workflow exists but has never run:
 
 1. **Initial Setup Issue**: When a workflow file is first added to a repository, it only triggers on subsequent pushes/events after being merged to the main branch.
 2. **Solution**: Make any commit to the main branch to trigger the workflow, or manually trigger it:
-   - Go to Actions tab → Select "Deploy to GitHub Pages" workflow
-   - Click "Run workflow" → Select `main` branch → Click "Run workflow"
+    - Go to Actions tab → Select "Deploy to GitHub Pages" workflow
+    - Click "Run workflow" → Select `main` branch → Click "Run workflow"
 3. The `.nojekyll` file in the `public/` directory ensures GitHub Pages doesn't process files with Jekyll (best practice for Vite apps)
 
 ### Deployment Fails
 
 1. **Check workflow logs**: Go to Actions tab and check the failed workflow run
 2. **Common issues**:
-   - Build errors: Check that the project builds locally with `npm run build`
-   - Permission errors: Ensure GitHub Actions has the required permissions
+    - Build errors: Check that the project builds locally with `npm run build`
+    - Permission errors: Ensure GitHub Actions has the required permissions
 
 ### Site Not Loading
 
@@ -152,6 +152,7 @@ You can monitor deployment status in several ways:
 ### Deployment URL
 
 After successful deployment, the site will be available at:
+
 ```
 https://actiongotoschool.github.io/multichrome/
 ```
