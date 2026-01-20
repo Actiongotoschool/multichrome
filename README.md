@@ -30,7 +30,34 @@
 <li>Keyboard shortcuts for power users</li>
 </ul>
 
-### Check it out live at: [**monochrome.samidy.com**](https://monochrome.samidy.com)
+### Check it out live at: [**actiongotoschool.github.io/multichrome**](https://actiongotoschool.github.io/multichrome)
+
+<br>
+
+## Deployment
+
+This project is automatically deployed to GitHub Pages at [actiongotoschool.github.io/multichrome](https://actiongotoschool.github.io/multichrome) via GitHub Actions.
+
+### Setup Instructions
+
+To enable GitHub Pages deployment for your fork:
+
+1. Go to your repository Settings → Pages
+2. Under "Build and deployment", set:
+   - **Source**: GitHub Actions
+3. Push to the `main` branch to trigger automatic deployment
+
+The deployment workflow (`.github/workflows/deploy.yml`) will automatically:
+- Install dependencies
+- Build the project with Vite
+- Deploy the `dist` folder to GitHub Pages
+
+### Manual Deployment
+
+You can also trigger deployment manually:
+1. Go to the "Actions" tab in your repository
+2. Select "Deploy to GitHub Pages" workflow
+3. Click "Run workflow"
 
 <br>
 
