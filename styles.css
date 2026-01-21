@@ -4669,3 +4669,128 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
         font-size: 0.7rem;
     }
 }
+
+/* AutoEQ Overlay */
+.autoeq-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+}
+
+.autoeq-modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-xl);
+}
+
+.autoeq-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.autoeq-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.close-autoeq-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.close-autoeq-btn:hover {
+    background: var(--secondary);
+    color: var(--foreground);
+}
+
+.autoeq-content {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.autoeq-search {
+    margin-bottom: 1rem;
+}
+
+.autoeq-info {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--secondary);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--primary);
+}
+
+.autoeq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.autoeq-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    width: 100%;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--foreground);
+    text-align: left;
+}
+
+.autoeq-item:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+    transform: translateX(4px);
+}
+
+.autoeq-item svg {
+    flex-shrink: 0;
+    color: var(--primary);
+}
+
+.autoeq-item span {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .autoeq-modal {
+        max-width: 100%;
+        max-height: 90vh;
+    }
+}

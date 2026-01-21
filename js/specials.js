@@ -3,6 +3,7 @@
 import { AudioEqualizer } from './equalizer.js';
 import { sidePanelManager } from './side-panel.js';
 import { ListeningStats } from './listening-stats.js';
+import { AutoEQManager } from './autoeq.js';
 
 export class SpecialsManager {
     constructor(player, ui) {
@@ -13,6 +14,7 @@ export class SpecialsManager {
         this.isOpen = false;
         this.equalizer = null;
         this.listeningStats = null;
+        this.autoEQ = null;
         
         this.init();
     }
@@ -32,6 +34,9 @@ export class SpecialsManager {
         // Initialize listening stats
         this.listeningStats = new ListeningStats();
         this.setupStatsTracking();
+
+        // Initialize AutoEQ
+        this.autoEQ = new AutoEQManager();
 
         // Toggle dropdown
         this.button.addEventListener('click', (e) => {
@@ -176,7 +181,7 @@ export class SpecialsManager {
                 <div class="equalizer-panel">
                     <div class="eq-presets">
                         <label style="font-size: 0.85rem; color: var(--muted-foreground); margin-bottom: 0.5rem; display: block;">Presets</label>
-                        <select id="eq-preset-select" style="width: 100%; padding: 0.5rem; background: var(--secondary); border: 1px solid var(--border); border-radius: var(--radius); color: var(--foreground);">
+                        <select id="eq-preset-select" style="width: 100%; padding: 0.5rem; background: var(--secondary); border: 1px solid var(--border); border-radius: var(--radius); color: var(--foreground); margin-bottom: 0.5rem;">
                             <option value="">Custom</option>
                             <option value="flat">Flat</option>
                             <option value="bass-boost">Bass Boost</option>
@@ -189,6 +194,14 @@ export class SpecialsManager {
                             <option value="electronic">Electronic</option>
                             <option value="hip-hop">Hip-Hop</option>
                         </select>
+                        <button id="autoeq-btn" class="btn-secondary" style="width: 100%; margin-bottom: 0.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                            AutoEQ Headphone Presets
+                        </button>
                     </div>
                     <div class="eq-controls">
                         ${bands.map((band, index) => `
@@ -250,6 +263,12 @@ export class SpecialsManager {
                         valueSpan.textContent = gains[index].toFixed(1);
                     });
                 }
+            });
+
+            // AutoEQ button
+            const autoEQBtn = container.querySelector('#autoeq-btn');
+            autoEQBtn.addEventListener('click', () => {
+                this.openAutoEQSelector(container, sliders, presetSelect);
             });
 
             // Reset button
@@ -528,5 +547,167 @@ export class SpecialsManager {
 
         closeBtn.addEventListener('click', closeModal);
         overlay.addEventListener('click', closeModal);
+    }
+
+    openAutoEQSelector(parentContainer, sliders, presetSelect) {
+        // Create AutoEQ overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'autoeq-overlay';
+        overlay.innerHTML = `
+            <div class="autoeq-modal">
+                <div class="autoeq-header">
+                    <h3>AutoEQ Headphone Presets</h3>
+                    <button class="close-autoeq-btn">&times;</button>
+                </div>
+                <div class="autoeq-content">
+                    <div class="autoeq-search">
+                        <input 
+                            type="text" 
+                            id="autoeq-search" 
+                            placeholder="Search headphones (e.g., Sony WH-1000XM4)..."
+                            style="width: 100%; padding: 0.75rem; background: var(--secondary); border: 1px solid var(--border); border-radius: var(--radius); color: var(--foreground);"
+                        />
+                    </div>
+                    <div class="autoeq-info">
+                        <p style="font-size: 0.85rem; color: var(--muted-foreground); margin: 0.75rem 0;">
+                            These presets are from the <a href="https://github.com/jaakkopasanen/AutoEq" target="_blank" style="color: var(--primary);">AutoEQ project</a>, 
+                            which provides automatic headphone equalization to match a neutral target curve.
+                        </p>
+                    </div>
+                    <div class="autoeq-list" id="autoeq-list">
+                        <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                            Loading headphones...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Close button
+        const closeBtn = overlay.querySelector('.close-autoeq-btn');
+        closeBtn.addEventListener('click', () => overlay.remove());
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        // Load and display headphones
+        this.loadAutoEQHeadphones(overlay, parentContainer, sliders, presetSelect);
+    }
+
+    async loadAutoEQHeadphones(overlay, parentContainer, sliders, presetSelect) {
+        const listElement = overlay.querySelector('#autoeq-list');
+        const searchInput = overlay.querySelector('#autoeq-search');
+
+        try {
+            // Fetch headphones list
+            const headphones = await this.autoEQ.fetchHeadphonesList();
+
+            const renderList = (filteredHeadphones) => {
+                if (filteredHeadphones.length === 0) {
+                    listElement.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                            No headphones found. Try a different search term.
+                        </div>
+                    `;
+                    return;
+                }
+
+                listElement.innerHTML = filteredHeadphones.map(hp => `
+                    <button class="autoeq-item" data-path="${hp.path}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                        </svg>
+                        <span>${hp.name}</span>
+                    </button>
+                `).join('');
+
+                // Add click handlers
+                listElement.querySelectorAll('.autoeq-item').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        await this.applyAutoEQPreset(btn.dataset.path, parentContainer, sliders, presetSelect);
+                        overlay.remove();
+                    });
+                });
+            };
+
+            // Initial render
+            renderList(headphones);
+
+            // Search functionality
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value;
+                if (query.length === 0) {
+                    renderList(headphones);
+                } else {
+                    const filtered = this.autoEQ.searchHeadphones(query);
+                    renderList(filtered);
+                }
+            });
+
+        } catch (error) {
+            listElement.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                    <p>Failed to load AutoEQ presets.</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem;">Error: ${error.message}</p>
+                </div>
+            `;
+        }
+    }
+
+    async applyAutoEQPreset(headphonePath, parentContainer, sliders, presetSelect) {
+        // Show loading state
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; border-radius: var(--radius);';
+        loadingOverlay.innerHTML = '<div style="color: var(--foreground); text-align: center;"><div style="margin-bottom: 0.5rem;">Loading preset...</div><div style="font-size: 0.85rem; color: var(--muted-foreground);">Please wait</div></div>';
+        parentContainer.style.position = 'relative';
+        parentContainer.appendChild(loadingOverlay);
+
+        try {
+            // Fetch the preset from AutoEQ
+            const parametricFilters = await this.autoEQ.fetchPreset(headphonePath);
+
+            if (!parametricFilters || parametricFilters.length === 0) {
+                throw new Error('No filters found in preset');
+            }
+
+            // Convert to our 10-band EQ
+            const bands = this.equalizer.getBands();
+            const gains = this.autoEQ.convertToGraphicEQ(parametricFilters, bands);
+
+            // Apply the gains
+            this.equalizer.setAllGains(gains);
+
+            // Update UI sliders
+            sliders.forEach((slider, index) => {
+                slider.value = gains[index];
+                const valueSpan = slider.parentElement.querySelector('.eq-value');
+                valueSpan.textContent = gains[index].toFixed(1);
+            });
+
+            // Update preset selector
+            presetSelect.value = '';
+
+            // Show success message
+            loadingOverlay.innerHTML = '<div style="color: var(--primary); text-align: center;"><div style="margin-bottom: 0.5rem;">✓ Preset Applied!</div><div style="font-size: 0.85rem;">AutoEQ tuning loaded</div></div>';
+            
+            setTimeout(() => {
+                loadingOverlay.remove();
+            }, 1500);
+
+        } catch (error) {
+            console.error('Failed to apply AutoEQ preset:', error);
+            loadingOverlay.innerHTML = `<div style="color: #ef4444; text-align: center;"><div style="margin-bottom: 0.5rem;">✗ Failed to Load</div><div style="font-size: 0.85rem;">${error.message}</div></div>`;
+            
+            setTimeout(() => {
+                loadingOverlay.remove();
+            }, 3000);
+        }
     }
 }
