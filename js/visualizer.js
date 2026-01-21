@@ -70,6 +70,12 @@ export class Visualizer {
     async start(container) {
         if (this.isActive) return;
 
+        // Wait for init to complete if not already done
+        if (!this.analyser || !this.audioContext) {
+            console.warn('Visualizer not initialized before start()');
+            return;
+        }
+
         // Create canvas
         this.canvas = document.createElement('canvas');
         this.canvas.className = 'visualizer-canvas';

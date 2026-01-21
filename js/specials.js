@@ -80,6 +80,22 @@ export class SpecialsManager {
                 this.openFeature(feature);
             });
         });
+
+        // Initialize audio graph when audio starts playing
+        this.player.audio.addEventListener('play', async () => {
+            if (!this.audioGraphInitialized) {
+                try {
+                    await this.initializeAudioGraph();
+                    
+                    // If equalizer was enabled, apply the settings
+                    if (this.equalizer.isEnabled) {
+                        this.equalizer.enable();
+                    }
+                } catch (error) {
+                    console.error('Failed to initialize audio graph on play:', error);
+                }
+            }
+        }, { once: false });
     }
 
     setupStatsTracking() {
