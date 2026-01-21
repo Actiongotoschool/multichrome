@@ -26,6 +26,7 @@ export class Player {
         this.currentTrack = null;
         this.currentRgValues = null;
         this.userVolume = parseFloat(localStorage.getItem('volume') || '0.7');
+        this.crossfadeManager = null; // Will be set by SpecialsManager
 
         // Sleep timer properties
         this.sleepTimer = null;
@@ -86,7 +87,12 @@ export class Player {
         }
 
         // Calculate effective volume
-        const effectiveVolume = this.userVolume * scale;
+        let effectiveVolume = this.userVolume * scale;
+
+        // Apply crossfade volume multiplier if active
+        if (this.crossfadeManager && this.crossfadeManager.volumeMultiplier !== undefined) {
+            effectiveVolume *= this.crossfadeManager.volumeMultiplier;
+        }
 
         // Apply to audio element
         this.audio.volume = Math.max(0, Math.min(1, effectiveVolume));
@@ -215,6 +221,33 @@ export class Player {
         this.quality = quality;
     }
 
+    async getTrackWithFallback(trackId) {
+        // Try to get track with quality fallback
+        const qualityFallbackOrder = ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW'];
+        const startIndex = qualityFallbackOrder.indexOf(this.quality);
+        const qualitiesToTry = startIndex >= 0 ? qualityFallbackOrder.slice(startIndex) : qualityFallbackOrder;
+
+        let lastError = null;
+        for (const quality of qualitiesToTry) {
+            try {
+                const trackData = await this.api.getTrack(trackId, quality);
+                // Verify we got valid data
+                if (trackData && trackData.info && trackData.info.manifest) {
+                    if (quality !== this.quality) {
+                        console.warn(`Track not available in ${this.quality}, using ${quality} instead`);
+                    }
+                    return { trackData, actualQuality: quality };
+                }
+            } catch (error) {
+                lastError = error;
+                // Failed to get track in this quality, try next
+            }
+        }
+
+        // All qualities failed
+        throw lastError || new Error('Track not available in any quality');
+    }
+
     async preloadNextTracks() {
         if (this.preloadAbortController) {
             this.preloadAbortController.abort();
@@ -324,8 +357,8 @@ export class Player {
                 }
                 await this.audio.play();
             } else {
-                // Get track data for ReplayGain (should be cached by API)
-                const trackData = await this.api.getTrack(track.id, this.quality);
+                // Try to get track data with quality fallback
+                const { trackData } = await this.getTrackWithFallback(track.id);
 
                 if (trackData && trackData.info) {
                     this.currentRgValues = {
@@ -379,6 +412,8 @@ export class Player {
             this.preloadNextTracks();
         } catch (error) {
             console.error(`Could not play track: ${trackTitle}`, error);
+            // Skip to next track on error
+            this.playNext();
         }
     }
 

@@ -4,6 +4,8 @@ import { AudioEqualizer } from './equalizer.js';
 import { sidePanelManager } from './side-panel.js';
 import { ListeningStats } from './listening-stats.js';
 import { AutoEQManager } from './autoeq.js';
+import { Visualizer } from './visualizer.js';
+import { CrossfadeManager } from './crossfade.js';
 
 export class SpecialsManager {
     constructor(player, ui) {
@@ -15,6 +17,9 @@ export class SpecialsManager {
         this.equalizer = null;
         this.listeningStats = null;
         this.autoEQ = null;
+        this.visualizer = null;
+        this.visualizerActive = false;
+        this.crossfade = null;
 
         this.init();
     }
@@ -37,6 +42,11 @@ export class SpecialsManager {
 
         // Initialize AutoEQ
         this.autoEQ = new AutoEQManager();
+
+        // Initialize Crossfade
+        this.crossfade = new CrossfadeManager(this.player);
+        this.player.crossfadeManager = this.crossfade; // Set reference for volume control
+        this.crossfade.init();
 
         // Toggle dropdown
         this.button.addEventListener('click', (e) => {
@@ -302,29 +312,183 @@ export class SpecialsManager {
     }
 
     openCrossfade() {
-        this.showFeatureNotImplemented(
-            'Crossfade',
-            'Crossfade will enable smooth transitions between tracks with configurable overlap duration.',
-            [
-                'Adjustable crossfade duration (1-12 seconds)',
-                'Fade in/out curves',
-                'Smart crossfade (analyzes track endings)',
-                'Enable/disable per session',
-            ]
-        );
+        const renderControls = () => {
+            const controlsHtml = `
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--secondary); border-radius: var(--radius);">
+                        <span style="font-weight: 500;">Enable Crossfade</span>
+                        <label class="toggle-switch" style="cursor: pointer;">
+                            <input type="checkbox" id="crossfade-toggle" ${this.crossfade.isEnabled() ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            `;
+            return controlsHtml;
+        };
+
+        const renderContent = () => {
+            const contentHtml = `
+                <div style="padding: 1rem;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Crossfade Duration: <span id="crossfade-duration-value">${this.crossfade.getDuration()}</span>s
+                        </label>
+                        <input 
+                            type="range" 
+                            id="crossfade-duration-slider" 
+                            min="1" 
+                            max="12" 
+                            value="${this.crossfade.getDuration()}"
+                            style="width: 100%; cursor: pointer;"
+                        >
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.25rem;">
+                            <span>1s</span>
+                            <span>12s</span>
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--secondary); border-radius: var(--radius); border-left: 3px solid var(--primary);">
+                        <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">How it works</h4>
+                        <p style="margin: 0; font-size: 0.85rem; color: var(--muted-foreground); line-height: 1.5;">
+                            Crossfade creates smooth transitions between tracks by gradually fading out the current track while fading in the next one.
+                            The duration you set determines how many seconds before the track ends to start the crossfade.
+                        </p>
+                    </div>
+                </div>
+            `;
+            return contentHtml;
+        };
+
+        sidePanelManager.open('crossfade', 'Crossfade', renderControls, renderContent);
+
+        // Setup event listeners
+        const toggle = document.getElementById('crossfade-toggle');
+        if (toggle) {
+            toggle.addEventListener('change', (e) => {
+                this.crossfade.setEnabled(e.target.checked);
+            });
+        }
+
+        const slider = document.getElementById('crossfade-duration-slider');
+        const valueDisplay = document.getElementById('crossfade-duration-value');
+        if (slider && valueDisplay) {
+            slider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value, 10);
+                valueDisplay.textContent = value;
+                this.crossfade.setDuration(value);
+            });
+        }
     }
 
     openVisualizer() {
-        this.showFeatureNotImplemented(
-            'Full-Screen Visualizer',
-            'An immersive audio-reactive visualizer will display beautiful animations synchronized to your music.',
-            [
-                'Multiple visualization styles',
-                'Beat detection and bass response',
-                'Color themes matching album art',
-                'Fullscreen mode',
-            ]
-        );
+        if (this.visualizerActive) {
+            // Already open, just bring to focus
+            return;
+        }
+
+        // Create fullscreen visualizer container
+        const container = document.createElement('div');
+        container.className = 'visualizer-fullscreen';
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+        `;
+
+        // Create controls
+        const controls = document.createElement('div');
+        controls.className = 'visualizer-controls';
+        controls.style.cssText = `
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10001;
+        `;
+
+        // Style selector
+        const styleSelect = document.createElement('select');
+        styleSelect.style.cssText = `
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+        `;
+        styleSelect.innerHTML = `
+            <option value="bars">Bars</option>
+            <option value="waveform">Waveform</option>
+            <option value="circular">Circular</option>
+        `;
+        styleSelect.addEventListener('change', () => {
+            if (this.visualizer) {
+                this.visualizer.setStyle(styleSelect.value);
+            }
+        });
+
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.cssText = `
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        `;
+        closeBtn.addEventListener('click', () => {
+            this.closeVisualizer();
+        });
+
+        controls.appendChild(styleSelect);
+        controls.appendChild(closeBtn);
+        container.appendChild(controls);
+
+        // Add to body
+        document.body.appendChild(container);
+
+        // Initialize visualizer
+        this.visualizer = new Visualizer(this.player.audio);
+        this.visualizer.start(container);
+        this.visualizerActive = true;
+
+        // Close on Escape key
+        this.visualizerEscapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeVisualizer();
+            }
+        };
+        document.addEventListener('keydown', this.visualizerEscapeHandler);
+    }
+
+    closeVisualizer() {
+        if (this.visualizer) {
+            this.visualizer.stop();
+            this.visualizer = null;
+        }
+
+        const container = document.querySelector('.visualizer-fullscreen');
+        if (container) {
+            container.remove();
+        }
+
+        if (this.visualizerEscapeHandler) {
+            document.removeEventListener('keydown', this.visualizerEscapeHandler);
+            this.visualizerEscapeHandler = null;
+        }
+
+        this.visualizerActive = false;
     }
 
     showFeatureNotImplemented(title, description, features) {
