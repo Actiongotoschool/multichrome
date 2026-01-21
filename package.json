@@ -43,8 +43,8 @@
         "source-map": "^0.7.4"
     },
     "dependencies": {
-        "@studio-freight/lenis": "^1.0.42",
         "dashjs": "^5.1.1",
+        "lenis": "^1.3.17",
         "pocketbase": "^0.26.5"
     }
 }

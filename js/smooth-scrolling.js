@@ -1,5 +1,5 @@
 //js/smooth-scrolling.js
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
 import { smoothScrollingSettings } from './storage.js';
 
 let lenis = null;
