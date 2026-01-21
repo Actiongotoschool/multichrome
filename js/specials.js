@@ -2,6 +2,7 @@
 // Handle Multichrome Special Features
 import { AudioEqualizer } from './equalizer.js';
 import { sidePanelManager } from './side-panel.js';
+import { ListeningStats } from './listening-stats.js';
 
 export class SpecialsManager {
     constructor(player, ui) {
@@ -11,6 +12,7 @@ export class SpecialsManager {
         this.button = null;
         this.isOpen = false;
         this.equalizer = null;
+        this.listeningStats = null;
         
         this.init();
     }
@@ -26,6 +28,10 @@ export class SpecialsManager {
 
         // Initialize equalizer
         this.equalizer = new AudioEqualizer(this.player.audio);
+
+        // Initialize listening stats
+        this.listeningStats = new ListeningStats();
+        this.setupStatsTracking();
 
         // Toggle dropdown
         this.button.addEventListener('click', (e) => {
@@ -54,6 +60,38 @@ export class SpecialsManager {
                 this.openFeature(feature);
             });
         });
+    }
+
+    setupStatsTracking() {
+        const audio = this.player.audio;
+
+        // Start tracking on play
+        audio.addEventListener('play', () => {
+            if (this.player.currentTrack) {
+                this.listeningStats.startTracking(this.player.currentTrack);
+            }
+        });
+
+        // Pause tracking
+        audio.addEventListener('pause', () => {
+            this.listeningStats.pauseTracking();
+        });
+
+        // Stop tracking on track end
+        audio.addEventListener('ended', () => {
+            this.listeningStats.stopTracking();
+        });
+
+        // Update tracking when track changes
+        const originalPlay = this.player.play.bind(this.player);
+        this.player.play = (track) => {
+            this.listeningStats.stopTracking();
+            const result = originalPlay(track);
+            if (track) {
+                this.listeningStats.startTracking(track);
+            }
+            return result;
+        };
     }
 
     toggle() {
@@ -300,8 +338,107 @@ export class SpecialsManager {
     }
 
     openListeningStats() {
-        // TODO: Implement listening statistics
-        alert('Listening Statistics coming soon! This will show your play history, top tracks, and more.');
+        const renderControls = (container) => {
+            container.innerHTML = `
+                <button id="close-stats-panel-btn" class="btn-icon" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+
+            container.querySelector('#close-stats-panel-btn').addEventListener('click', () => {
+                sidePanelManager.close();
+            });
+        };
+
+        const renderContent = (container) => {
+            const totalStats = this.listeningStats.getTotalStats();
+            const topTracks = this.listeningStats.getTopTracks(10);
+            const topArtists = this.listeningStats.getTopArtists(5);
+
+            container.innerHTML = `
+                <div class="stats-panel">
+                    <div class="stats-summary">
+                        <h4>Your Music Journey</h4>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <span class="stat-value">${totalStats.totalPlays}</span>
+                                <span class="stat-label">Total Plays</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value">${this.listeningStats.formatTime(totalStats.totalListenTime)}</span>
+                                <span class="stat-label">Listen Time</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value">${totalStats.totalTracks}</span>
+                                <span class="stat-label">Unique Tracks</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value">${totalStats.totalArtists}</span>
+                                <span class="stat-label">Artists</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <h4>Top Tracks</h4>
+                        ${topTracks.length > 0 ? `
+                            <div class="stats-list">
+                                ${topTracks.map((track, index) => `
+                                    <div class="stats-item">
+                                        <span class="stats-rank">${index + 1}</span>
+                                        <div class="stats-info">
+                                            <div class="stats-title">${track.title}</div>
+                                            <div class="stats-subtitle">${track.artist}</div>
+                                        </div>
+                                        <div class="stats-meta">
+                                            <span>${track.count} plays</span>
+                                            <span class="stats-time">${this.listeningStats.formatTime(track.totalTime)}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="text-align: center; color: var(--muted-foreground); padding: 2rem;">No listening history yet. Start playing some music!</p>'}
+                    </div>
+
+                    <div class="stats-section">
+                        <h4>Top Artists</h4>
+                        ${topArtists.length > 0 ? `
+                            <div class="stats-list">
+                                ${topArtists.map((artist, index) => `
+                                    <div class="stats-item">
+                                        <span class="stats-rank">${index + 1}</span>
+                                        <div class="stats-info">
+                                            <div class="stats-title">${artist.name}</div>
+                                        </div>
+                                        <div class="stats-meta">
+                                            <span>${artist.count} plays</span>
+                                            <span class="stats-time">${this.listeningStats.formatTime(artist.totalTime)}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="text-align: center; color: var(--muted-foreground); padding: 2rem;">No artist data yet.</p>'}
+                    </div>
+
+                    <div class="stats-footer">
+                        <button id="clear-stats-btn" class="btn-secondary" style="width: 100%;">Clear All Statistics</button>
+                    </div>
+                </div>
+            `;
+
+            // Clear stats button
+            container.querySelector('#clear-stats-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear all listening statistics? This cannot be undone.')) {
+                    this.listeningStats.clearStats();
+                    renderContent(container);
+                }
+            });
+        };
+
+        sidePanelManager.open('stats', 'Listening Statistics', renderControls, renderContent);
     }
 
     formatTime(seconds) {
