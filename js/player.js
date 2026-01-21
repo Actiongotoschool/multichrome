@@ -215,6 +215,33 @@ export class Player {
         this.quality = quality;
     }
 
+    async getTrackWithFallback(trackId) {
+        // Try to get track with quality fallback
+        const qualityFallbackOrder = ['HI_RES_LOSSLESS', 'LOSSLESS', 'HIGH', 'LOW'];
+        const startIndex = qualityFallbackOrder.indexOf(this.quality);
+        const qualitiesToTry = startIndex >= 0 ? qualityFallbackOrder.slice(startIndex) : qualityFallbackOrder;
+
+        let lastError = null;
+        for (const quality of qualitiesToTry) {
+            try {
+                const trackData = await this.api.getTrack(trackId, quality);
+                // Verify we got valid data
+                if (trackData && trackData.info && trackData.info.manifest) {
+                    if (quality !== this.quality) {
+                        console.warn(`Track not available in ${this.quality}, using ${quality} instead`);
+                    }
+                    return { trackData, actualQuality: quality };
+                }
+            } catch (error) {
+                lastError = error;
+                console.debug(`Failed to get track in ${quality} quality:`, error.message);
+            }
+        }
+
+        // All qualities failed
+        throw lastError || new Error('Track not available in any quality');
+    }
+
     async preloadNextTracks() {
         if (this.preloadAbortController) {
             this.preloadAbortController.abort();
@@ -324,8 +351,8 @@ export class Player {
                 }
                 await this.audio.play();
             } else {
-                // Get track data for ReplayGain (should be cached by API)
-                const trackData = await this.api.getTrack(track.id, this.quality);
+                // Try to get track data with quality fallback
+                const { trackData, actualQuality } = await this.getTrackWithFallback(track.id);
 
                 if (trackData && trackData.info) {
                     this.currentRgValues = {
@@ -379,6 +406,8 @@ export class Player {
             this.preloadNextTracks();
         } catch (error) {
             console.error(`Could not play track: ${trackTitle}`, error);
+            // Skip to next track on error
+            this.playNext();
         }
     }
 
