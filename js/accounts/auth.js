@@ -1,12 +1,32 @@
 // js/firebase/auth.js
-import { auth, provider } from './config.js';
-import {
-    signInWithPopup,
-    signOut as firebaseSignOut,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { initializeFirebase } from './config.js';
+
+let firebaseAuthModule = null;
+
+async function getFirebaseAuth() {
+    if (firebaseAuthModule) return firebaseAuthModule;
+
+    try {
+        const [{ auth, provider }, authModule] = await Promise.all([
+            initializeFirebase(),
+            import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'),
+        ]);
+
+        if (!auth) {
+            return null;
+        }
+
+        firebaseAuthModule = {
+            auth,
+            provider,
+            ...authModule,
+        };
+        return firebaseAuthModule;
+    } catch (error) {
+        console.warn('Firebase Auth not available:', error.message);
+        return null;
+    }
+}
 
 export class AuthManager {
     constructor() {
@@ -16,15 +36,19 @@ export class AuthManager {
         this.init();
     }
 
-    init() {
-        if (!auth) return;
+    async init() {
+        try {
+            const firebase = await getFirebaseAuth();
+            if (!firebase || !firebase.auth) return;
 
-        this.unsubscribe = onAuthStateChanged(auth, (user) => {
-            this.user = user;
-            this.updateUI(user);
-
-            this.authListeners.forEach((listener) => listener(user));
-        });
+            this.unsubscribe = firebase.onAuthStateChanged(firebase.auth, (user) => {
+                this.user = user;
+                this.updateUI(user);
+                this.authListeners.forEach((listener) => listener(user));
+            });
+        } catch (error) {
+            console.warn('Firebase Auth initialization skipped:', error.message);
+        }
     }
 
     onAuthStateChanged(callback) {
@@ -36,13 +60,14 @@ export class AuthManager {
     }
 
     async signInWithGoogle() {
-        if (!auth) {
+        const firebase = await getFirebaseAuth();
+        if (!firebase || !firebase.auth) {
             alert('Firebase is not configured. Please check console.');
             return;
         }
 
         try {
-            const result = await signInWithPopup(auth, provider);
+            const result = await firebase.signInWithPopup(firebase.auth, firebase.provider);
             // The onAuthStateChanged listener will handle the rest
             return result.user;
         } catch (error) {
@@ -53,12 +78,13 @@ export class AuthManager {
     }
 
     async signInWithEmail(email, password) {
-        if (!auth) {
+        const firebase = await getFirebaseAuth();
+        if (!firebase || !firebase.auth) {
             alert('Firebase is not configured.');
             return;
         }
         try {
-            const result = await signInWithEmailAndPassword(auth, email, password);
+            const result = await firebase.signInWithEmailAndPassword(firebase.auth, email, password);
             return result.user;
         } catch (error) {
             console.error('Email Login failed:', error);
@@ -68,12 +94,13 @@ export class AuthManager {
     }
 
     async signUpWithEmail(email, password) {
-        if (!auth) {
+        const firebase = await getFirebaseAuth();
+        if (!firebase || !firebase.auth) {
             alert('Firebase is not configured.');
             return;
         }
         try {
-            const result = await createUserWithEmailAndPassword(auth, email, password);
+            const result = await firebase.createUserWithEmailAndPassword(firebase.auth, email, password);
             return result.user;
         } catch (error) {
             console.error('Sign Up failed:', error);
@@ -83,10 +110,11 @@ export class AuthManager {
     }
 
     async signOut() {
-        if (!auth) return;
+        const firebase = await getFirebaseAuth();
+        if (!firebase || !firebase.auth) return;
 
         try {
-            await firebaseSignOut(auth);
+            await firebase.signOut(firebase.auth);
             // The onAuthStateChanged listener will handle the rest
         } catch (error) {
             console.error('Logout failed:', error);

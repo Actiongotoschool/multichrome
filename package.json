@@ -43,7 +43,8 @@
         "source-map": "^0.7.4"
     },
     "dependencies": {
-        "pocketbase": "^0.26.5",
-        "dashjs": "^5.1.1"
+        "dashjs": "^5.1.1",
+        "lenis": "^1.3.17",
+        "pocketbase": "^0.26.5"
     }
 }
