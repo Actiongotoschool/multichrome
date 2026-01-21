@@ -5,17 +5,17 @@ let firebaseAuthModule = null;
 
 async function getFirebaseAuth() {
     if (firebaseAuthModule) return firebaseAuthModule;
-    
+
     try {
         const [{ auth, provider }, authModule] = await Promise.all([
             initializeFirebase(),
             import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'),
         ]);
-        
+
         if (!auth) {
             return null;
         }
-        
+
         firebaseAuthModule = {
             auth,
             provider,
