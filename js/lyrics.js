@@ -494,6 +494,140 @@ export class LyricsManager {
 
         return this.isRomajiMode;
     }
+
+    // Apply font and glow customizations to am-lyrics component
+    applyCustomizations(amLyricsElement) {
+        if (!amLyricsElement) return;
+
+        // Get current settings
+        const font = lyricsSettings.getFont();
+        const glow = lyricsSettings.getGlow();
+
+        // Wait for shadow root to be available
+        const applyStyles = () => {
+            const shadowRoot = amLyricsElement.shadowRoot;
+            if (!shadowRoot) {
+                setTimeout(applyStyles, 100);
+                return;
+            }
+
+            // Check if we've already injected our style element
+            let styleElement = shadowRoot.querySelector('#multichrome-lyrics-custom-styles');
+            if (!styleElement) {
+                styleElement = document.createElement('style');
+                styleElement.id = 'multichrome-lyrics-custom-styles';
+                shadowRoot.appendChild(styleElement);
+            }
+
+            // Generate styles based on settings
+            const fontStyles = this.getFontStyles(font);
+            const glowStyles = this.getGlowStyles(glow);
+
+            styleElement.textContent = `
+                ${fontStyles}
+                ${glowStyles}
+            `;
+        };
+
+        applyStyles();
+    }
+
+    // Get font styles for lyrics
+    getFontStyles(font) {
+        const fontMaps = {
+            default: `
+                * {
+                    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+                }
+            `,
+            serif: `
+                * {
+                    font-family: Georgia, 'Times New Roman', serif !important;
+                }
+            `,
+            mono: `
+                * {
+                    font-family: Monaco, 'Courier New', monospace !important;
+                    letter-spacing: 0.05em !important;
+                }
+            `,
+            rounded: `
+                * {
+                    font-family: Quicksand, Nunito, Comfortaa, -apple-system, BlinkMacSystemFont, sans-serif !important;
+                    font-weight: 500 !important;
+                }
+            `,
+            elegant: `
+                * {
+                    font-family: 'Playfair Display', 'Libre Baskerville', Georgia, serif !important;
+                    font-weight: 500 !important;
+                    letter-spacing: 0.02em !important;
+                }
+            `,
+        };
+
+        return fontMaps[font] || fontMaps['default'];
+    }
+
+    // Get glow styles for lyrics
+    getGlowStyles(glow) {
+        const glowMaps = {
+            none: `
+                .am-lyrics__line--active {
+                    text-shadow: none !important;
+                }
+            `,
+            soft: `
+                .am-lyrics__line--active {
+                    text-shadow:
+                        0 0 10px rgba(147, 197, 253, 0.4),
+                        0 0 20px rgba(147, 197, 253, 0.2) !important;
+                }
+            `,
+            medium: `
+                .am-lyrics__line--active {
+                    text-shadow:
+                        0 0 15px rgba(147, 197, 253, 0.6),
+                        0 0 30px rgba(147, 197, 253, 0.4),
+                        0 0 45px rgba(147, 197, 253, 0.2) !important;
+                }
+            `,
+            strong: `
+                .am-lyrics__line--active {
+                    text-shadow:
+                        0 0 20px rgba(147, 197, 253, 0.8),
+                        0 0 40px rgba(147, 197, 253, 0.6),
+                        0 0 60px rgba(147, 197, 253, 0.4),
+                        0 0 80px rgba(147, 197, 253, 0.2) !important;
+                    animation: pulse-glow 2s ease-in-out infinite;
+                }
+                @keyframes pulse-glow {
+                    0%, 100% { filter: brightness(1); }
+                    50% { filter: brightness(1.2); }
+                }
+            `,
+            rainbow: `
+                .am-lyrics__line--active {
+                    text-shadow:
+                        0 0 10px rgba(255, 0, 110, 0.5),
+                        0 0 20px rgba(131, 56, 236, 0.5),
+                        0 0 30px rgba(58, 134, 255, 0.5),
+                        0 0 40px rgba(251, 86, 7, 0.3) !important;
+                    animation: rainbow-glow 3s ease-in-out infinite;
+                }
+                @keyframes rainbow-glow {
+                    0% {
+                        filter: hue-rotate(0deg);
+                    }
+                    100% {
+                        filter: hue-rotate(360deg);
+                    }
+                }
+            `,
+        };
+
+        return glowMaps[glow] || '';
+    }
 }
 
 export function openLyricsPanel(track, audioPlayer, lyricsManager, forceOpen = false) {
@@ -600,6 +734,11 @@ async function renderLyricsComponent(container, track, audioPlayer, lyricsManage
         amLyrics.style.width = '100%';
 
         container.appendChild(amLyrics);
+
+        // Apply lyrics customizations after component is added to DOM
+        setTimeout(() => {
+            lyricsManager.applyCustomizations(amLyrics);
+        }, 100);
 
         // Setup observer IMMEDIATELY to catch lyrics as they load (not after waiting)
         // This is critical - observer must be running before lyrics arrive from LRCLIB
