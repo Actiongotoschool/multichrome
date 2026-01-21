@@ -4477,8 +4477,7 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
 }
 
 .eq-band input[type='range'] {
-    writing-mode: bt-lr; /* IE */
-    appearance: slider-vertical; /* WebKit */
+    writing-mode: bt-lr; /* IE */ /* WebKit */
     appearance: slider-vertical;
     width: 8px;
     height: 150px;
@@ -4490,7 +4489,6 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
 }
 
 .eq-band input[type='range']::-webkit-slider-thumb {
-    appearance: none;
     appearance: none;
     width: 18px;
     height: 18px;
