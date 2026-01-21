@@ -87,15 +87,15 @@ export class SpecialsManager {
                 try {
                     await this.initializeAudioGraph();
                     
-                    // If equalizer was enabled, apply the settings
-                    if (this.equalizer.isEnabled) {
-                        this.equalizer.enable();
+                    // Resume audio context if equalizer was previously enabled
+                    if (this.equalizer.isEnabled && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
                     }
                 } catch (error) {
                     console.error('Failed to initialize audio graph on play:', error);
                 }
             }
-        }, { once: false });
+        });
     }
 
     setupStatsTracking() {
