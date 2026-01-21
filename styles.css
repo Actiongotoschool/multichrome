@@ -1,4 +1,5 @@
 /* stylelint-disable no-descending-specificity */
+
 :root {
     color-scheme: light dark;
 
@@ -4282,5 +4283,3 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
     }
 }
 
-/* Font imports for additional styles */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Quicksand:wght@400;500;600&display=swap');
