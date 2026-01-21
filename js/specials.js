@@ -15,14 +15,14 @@ export class SpecialsManager {
         this.equalizer = null;
         this.listeningStats = null;
         this.autoEQ = null;
-        
+
         this.init();
     }
 
     init() {
         this.dropdown = document.getElementById('multichrome-specials-dropdown');
         this.button = document.getElementById('multichrome-specials-btn');
-        
+
         if (!this.dropdown || !this.button) {
             console.warn('Multichrome Specials elements not found');
             return;
@@ -59,7 +59,7 @@ export class SpecialsManager {
 
         // Handle feature buttons
         const featureButtons = this.dropdown.querySelectorAll('.special-item:not(:disabled)');
-        featureButtons.forEach(btn => {
+        featureButtons.forEach((btn) => {
             btn.addEventListener('click', () => {
                 const feature = btn.dataset.feature;
                 this.openFeature(feature);
@@ -122,8 +122,8 @@ export class SpecialsManager {
     openFeature(feature) {
         console.log(`Opening feature: ${feature}`);
         this.close();
-        
-        switch(feature) {
+
+        switch (feature) {
             case 'equalizer':
                 this.openEqualizer();
                 break;
@@ -176,7 +176,7 @@ export class SpecialsManager {
             }
 
             const bands = this.equalizer.getBands();
-            
+
             container.innerHTML = `
                 <div class="equalizer-panel">
                     <div class="eq-presets">
@@ -204,7 +204,9 @@ export class SpecialsManager {
                         </button>
                     </div>
                     <div class="eq-controls">
-                        ${bands.map((band, index) => `
+                        ${bands
+                            .map(
+                                (band, index) => `
                             <div class="eq-band">
                                 <input 
                                     type="range" 
@@ -219,7 +221,9 @@ export class SpecialsManager {
                                 <span class="eq-value">${band.gain.toFixed(1)}</span>
                                 <span class="eq-label">${band.name}</span>
                             </div>
-                        `).join('')}
+                        `
+                            )
+                            .join('')}
                     </div>
                     <div class="eq-actions">
                         <button id="eq-reset-btn" class="btn-secondary" style="flex: 1;">Reset</button>
@@ -232,15 +236,15 @@ export class SpecialsManager {
 
             // Add event listeners
             const sliders = container.querySelectorAll('.eq-band input[type="range"]');
-            sliders.forEach(slider => {
+            sliders.forEach((slider) => {
                 const updateValue = () => {
                     const bandIndex = parseInt(slider.dataset.band);
                     const value = parseFloat(slider.value);
                     this.equalizer.setGain(bandIndex, value);
-                    
+
                     const valueSpan = slider.parentElement.querySelector('.eq-value');
                     valueSpan.textContent = value.toFixed(1);
-                    
+
                     // Reset preset selector
                     container.querySelector('#eq-preset-select').value = '';
                 };
@@ -254,7 +258,7 @@ export class SpecialsManager {
                 const preset = e.target.value;
                 if (preset) {
                     this.equalizer.applyPreset(preset);
-                    
+
                     // Update sliders
                     const gains = this.equalizer.getAllGains();
                     sliders.forEach((slider, index) => {
@@ -302,7 +306,7 @@ export class SpecialsManager {
                 'Adjustable crossfade duration (1-12 seconds)',
                 'Fade in/out curves',
                 'Smart crossfade (analyzes track endings)',
-                'Enable/disable per session'
+                'Enable/disable per session',
             ]
         );
     }
@@ -315,20 +319,22 @@ export class SpecialsManager {
                 'Multiple visualization styles',
                 'Beat detection and bass response',
                 'Color themes matching album art',
-                'Fullscreen mode'
+                'Fullscreen mode',
             ]
         );
     }
 
     showFeatureNotImplemented(title, description, features) {
-        const featuresHTML = features ? `
+        const featuresHTML = features
+            ? `
             <div style="margin-top: 1rem;">
                 <strong style="display: block; margin-bottom: 0.5rem; color: var(--foreground);">Planned features:</strong>
                 <ul style="margin: 0; padding-left: 1.5rem; color: var(--muted-foreground);">
-                    ${features.map(f => `<li style="margin: 0.25rem 0;">${f}</li>`).join('')}
+                    ${features.map((f) => `<li style="margin: 0.25rem 0;">${f}</li>`).join('')}
                 </ul>
             </div>
-        ` : '';
+        `
+            : '';
 
         const content = `
             <div style="padding: 1rem;">
@@ -365,14 +371,14 @@ export class SpecialsManager {
 
         const audio = this.player.audio;
         const track = this.player.currentTrack;
-        
+
         // Get audio stats
         const sampleRate = audio.sampleRate || 'N/A';
         const duration = track.duration ? this.formatTime(track.duration) : 'N/A';
         const quality = track.audioQuality || 'Unknown';
         const bitDepth = track.bitDepth || 'N/A';
         const codec = track.codec || 'N/A';
-        
+
         const statsHTML = `
             <div style="padding: 1rem;">
                 <h3 style="margin-bottom: 1rem;">Current Audio Stats</h3>
@@ -456,9 +462,13 @@ export class SpecialsManager {
 
                     <div class="stats-section">
                         <h4>Top Tracks</h4>
-                        ${topTracks.length > 0 ? `
+                        ${
+                            topTracks.length > 0
+                                ? `
                             <div class="stats-list">
-                                ${topTracks.map((track, index) => `
+                                ${topTracks
+                                    .map(
+                                        (track, index) => `
                                     <div class="stats-item">
                                         <span class="stats-rank">${index + 1}</span>
                                         <div class="stats-info">
@@ -470,16 +480,24 @@ export class SpecialsManager {
                                             <span class="stats-time">${this.listeningStats.formatTime(track.totalTime)}</span>
                                         </div>
                                     </div>
-                                `).join('')}
+                                `
+                                    )
+                                    .join('')}
                             </div>
-                        ` : '<p style="text-align: center; color: var(--muted-foreground); padding: 2rem;">No listening history yet. Start playing some music!</p>'}
+                        `
+                                : '<p style="text-align: center; color: var(--muted-foreground); padding: 2rem;">No listening history yet. Start playing some music!</p>'
+                        }
                     </div>
 
                     <div class="stats-section">
                         <h4>Top Artists</h4>
-                        ${topArtists.length > 0 ? `
+                        ${
+                            topArtists.length > 0
+                                ? `
                             <div class="stats-list">
-                                ${topArtists.map((artist, index) => `
+                                ${topArtists
+                                    .map(
+                                        (artist, index) => `
                                     <div class="stats-item">
                                         <span class="stats-rank">${index + 1}</span>
                                         <div class="stats-info">
@@ -490,9 +508,13 @@ export class SpecialsManager {
                                             <span class="stats-time">${this.listeningStats.formatTime(artist.totalTime)}</span>
                                         </div>
                                     </div>
-                                `).join('')}
+                                `
+                                    )
+                                    .join('')}
                             </div>
-                        ` : '<p style="text-align: center; color: var(--muted-foreground); padding: 2rem;">No artist data yet.</p>'}
+                        `
+                                : '<p style="text-align: center; color: var(--muted-foreground); padding: 2rem;">No artist data yet.</p>'
+                        }
                     </div>
 
                     <div class="stats-footer">
@@ -618,7 +640,9 @@ export class SpecialsManager {
                     return;
                 }
 
-                listElement.innerHTML = filteredHeadphones.map(hp => `
+                listElement.innerHTML = filteredHeadphones
+                    .map(
+                        (hp) => `
                     <button class="autoeq-item" data-path="${hp.path}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
@@ -626,10 +650,12 @@ export class SpecialsManager {
                         </svg>
                         <span>${hp.name}</span>
                     </button>
-                `).join('');
+                `
+                    )
+                    .join('');
 
                 // Add click handlers
-                listElement.querySelectorAll('.autoeq-item').forEach(btn => {
+                listElement.querySelectorAll('.autoeq-item').forEach((btn) => {
                     btn.addEventListener('click', async () => {
                         await this.applyAutoEQPreset(btn.dataset.path, parentContainer, sliders, presetSelect);
                         overlay.remove();
@@ -650,7 +676,6 @@ export class SpecialsManager {
                     renderList(filtered);
                 }
             });
-
         } catch (error) {
             listElement.innerHTML = `
                 <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
@@ -664,8 +689,10 @@ export class SpecialsManager {
     async applyAutoEQPreset(headphonePath, parentContainer, sliders, presetSelect) {
         // Show loading state
         const loadingOverlay = document.createElement('div');
-        loadingOverlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; border-radius: var(--radius);';
-        loadingOverlay.innerHTML = '<div style="color: var(--foreground); text-align: center;"><div style="margin-bottom: 0.5rem;">Loading preset...</div><div style="font-size: 0.85rem; color: var(--muted-foreground);">Please wait</div></div>';
+        loadingOverlay.style.cssText =
+            'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; border-radius: var(--radius);';
+        loadingOverlay.innerHTML =
+            '<div style="color: var(--foreground); text-align: center;"><div style="margin-bottom: 0.5rem;">Loading preset...</div><div style="font-size: 0.85rem; color: var(--muted-foreground);">Please wait</div></div>';
         parentContainer.style.position = 'relative';
         parentContainer.appendChild(loadingOverlay);
 
@@ -695,16 +722,16 @@ export class SpecialsManager {
             presetSelect.value = '';
 
             // Show success message
-            loadingOverlay.innerHTML = '<div style="color: var(--primary); text-align: center;"><div style="margin-bottom: 0.5rem;">✓ Preset Applied!</div><div style="font-size: 0.85rem;">AutoEQ tuning loaded</div></div>';
-            
+            loadingOverlay.innerHTML =
+                '<div style="color: var(--primary); text-align: center;"><div style="margin-bottom: 0.5rem;">✓ Preset Applied!</div><div style="font-size: 0.85rem;">AutoEQ tuning loaded</div></div>';
+
             setTimeout(() => {
                 loadingOverlay.remove();
             }, 1500);
-
         } catch (error) {
             console.error('Failed to apply AutoEQ preset:', error);
             loadingOverlay.innerHTML = `<div style="color: #ef4444; text-align: center;"><div style="margin-bottom: 0.5rem;">✗ Failed to Load</div><div style="font-size: 0.85rem;">${error.message}</div></div>`;
-            
+
             setTimeout(() => {
                 loadingOverlay.remove();
             }, 3000);

@@ -535,35 +535,35 @@ export class LyricsManager {
     // Get font styles for lyrics
     getFontStyles(font) {
         const fontMaps = {
-            'default': `
+            default: `
                 * {
                     font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
                 }
             `,
-            'serif': `
+            serif: `
                 * {
                     font-family: Georgia, 'Times New Roman', serif !important;
                 }
             `,
-            'mono': `
+            mono: `
                 * {
                     font-family: Monaco, 'Courier New', monospace !important;
                     letter-spacing: 0.05em !important;
                 }
             `,
-            'rounded': `
+            rounded: `
                 * {
                     font-family: Quicksand, Nunito, Comfortaa, -apple-system, BlinkMacSystemFont, sans-serif !important;
                     font-weight: 500 !important;
                 }
             `,
-            'elegant': `
+            elegant: `
                 * {
                     font-family: 'Playfair Display', 'Libre Baskerville', Georgia, serif !important;
                     font-weight: 500 !important;
                     letter-spacing: 0.02em !important;
                 }
-            `
+            `,
         };
 
         return fontMaps[font] || fontMaps['default'];
@@ -572,19 +572,19 @@ export class LyricsManager {
     // Get glow styles for lyrics
     getGlowStyles(glow) {
         const glowMaps = {
-            'none': `
+            none: `
                 .am-lyrics__line--active {
                     text-shadow: none !important;
                 }
             `,
-            'soft': `
+            soft: `
                 .am-lyrics__line--active {
                     text-shadow:
                         0 0 10px rgba(147, 197, 253, 0.4),
                         0 0 20px rgba(147, 197, 253, 0.2) !important;
                 }
             `,
-            'medium': `
+            medium: `
                 .am-lyrics__line--active {
                     text-shadow:
                         0 0 15px rgba(147, 197, 253, 0.6),
@@ -592,7 +592,7 @@ export class LyricsManager {
                         0 0 45px rgba(147, 197, 253, 0.2) !important;
                 }
             `,
-            'strong': `
+            strong: `
                 .am-lyrics__line--active {
                     text-shadow:
                         0 0 20px rgba(147, 197, 253, 0.8),
@@ -606,7 +606,7 @@ export class LyricsManager {
                     50% { filter: brightness(1.2); }
                 }
             `,
-            'rainbow': `
+            rainbow: `
                 .am-lyrics__line--active {
                     text-shadow:
                         0 0 10px rgba(255, 0, 110, 0.5),
@@ -623,7 +623,7 @@ export class LyricsManager {
                         filter: hue-rotate(360deg);
                     }
                 }
-            `
+            `,
         };
 
         return glowMaps[glow] || '';

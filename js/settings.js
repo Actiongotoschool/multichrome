@@ -273,7 +273,7 @@ export function initializeSettings(scrobbler, player, api, ui) {
                 const lyricsPanel = document.querySelector('.lyrics-panel');
                 if (lyricsPanel) {
                     lyricsPanel.setAttribute('data-font-style', font);
-                    
+
                     // Re-apply customizations to am-lyrics component
                     const amLyrics = lyricsPanel.querySelector('am-lyrics');
                     if (amLyrics && lyricsPanel.lyricsManager) {
@@ -306,7 +306,7 @@ export function initializeSettings(scrobbler, player, api, ui) {
                 const lyricsPanel = document.querySelector('.lyrics-panel');
                 if (lyricsPanel) {
                     lyricsPanel.setAttribute('data-glow', glow);
-                    
+
                     // Re-apply customizations to am-lyrics component
                     const amLyrics = lyricsPanel.querySelector('am-lyrics');
                     if (amLyrics && lyricsPanel.lyricsManager) {

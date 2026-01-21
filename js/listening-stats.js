@@ -26,7 +26,7 @@ export class ListeningStats {
             albums: {}, // albumId -> { count, totalTime, title, artist }
             history: [], // Array of {trackId, timestamp, duration}
             totalListenTime: 0,
-            startDate: Date.now()
+            startDate: Date.now(),
         };
     }
 
@@ -50,7 +50,7 @@ export class ListeningStats {
         if (!this.isPlaying || !this.currentTrack || !this.startTime) return;
 
         const listenTime = (Date.now() - this.startTime) / 1000; // in seconds
-        
+
         // Only count if listened for at least 30 seconds
         if (listenTime >= 30) {
             this.updateStats(this.currentTrack, listenTime);
@@ -61,7 +61,7 @@ export class ListeningStats {
 
     resumeTracking() {
         if (!this.currentTrack) return;
-        
+
         this.startTime = Date.now();
         this.isPlaying = true;
     }
@@ -86,7 +86,7 @@ export class ListeningStats {
                 title: track.title,
                 artist: track.artist?.name || track.artists?.[0]?.name || 'Unknown',
                 album: track.album?.title || 'Unknown',
-                cover: track.album?.cover || track.cover || ''
+                cover: track.album?.cover || track.cover || '',
             };
         }
         this.stats.tracks[trackId].count++;
@@ -99,7 +99,7 @@ export class ListeningStats {
                 this.stats.artists[artistId] = {
                     count: 0,
                     totalTime: 0,
-                    name: track.artist?.name || track.artists?.[0]?.name || 'Unknown'
+                    name: track.artist?.name || track.artists?.[0]?.name || 'Unknown',
                 };
             }
             this.stats.artists[artistId].count++;
@@ -114,7 +114,7 @@ export class ListeningStats {
                     totalTime: 0,
                     title: track.album?.title || 'Unknown',
                     artist: track.artist?.name || track.artists?.[0]?.name || 'Unknown',
-                    cover: track.album?.cover || ''
+                    cover: track.album?.cover || '',
                 };
             }
             this.stats.albums[albumId].count++;
@@ -125,7 +125,7 @@ export class ListeningStats {
         this.stats.history.push({
             trackId: trackId,
             timestamp: Date.now(),
-            duration: listenTime
+            duration: listenTime,
         });
 
         // Keep only last 1000 history entries
@@ -162,14 +162,14 @@ export class ListeningStats {
 
     getRecentTracks(limit = 20) {
         const recentHistory = [...this.stats.history].reverse().slice(0, limit);
-        
-        return recentHistory.map(entry => {
+
+        return recentHistory.map((entry) => {
             const trackData = this.stats.tracks[entry.trackId];
             return {
                 ...trackData,
                 id: entry.trackId,
                 timestamp: entry.timestamp,
-                duration: entry.duration
+                duration: entry.duration,
             };
         });
     }
@@ -188,14 +188,14 @@ export class ListeningStats {
             totalPlays,
             totalListenTime: this.stats.totalListenTime,
             avgDuration,
-            startDate: this.stats.startDate
+            startDate: this.stats.startDate,
         };
     }
 
     formatTime(seconds) {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
-        
+
         if (hours > 0) {
             return `${hours}h ${minutes}m`;
         }
@@ -222,7 +222,7 @@ export class ListeningStats {
             albums: {},
             history: [],
             totalListenTime: 0,
-            startDate: Date.now()
+            startDate: Date.now(),
         };
         this.saveStats();
     }

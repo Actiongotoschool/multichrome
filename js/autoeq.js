@@ -40,20 +40,20 @@ export class AutoEQManager {
             }
 
             const data = await response.json();
-            
+
             // Get all directories (manufacturers)
-            const manufacturers = data.filter(item => item.type === 'dir');
-            
+            const manufacturers = data.filter((item) => item.type === 'dir');
+
             // Build list of headphones
             const headphones = [];
-            
+
             // For now, we'll create a simplified list based on known popular models
             // In production, you'd want to recursively fetch all subdirectories
             const popularHeadphones = this.getPopularHeadphones();
-            
+
             this.headphonesList = popularHeadphones;
             this.isLoading = false;
-            
+
             return this.headphonesList;
         } catch (error) {
             console.error('Failed to fetch AutoEQ headphones list:', error);
@@ -82,7 +82,7 @@ export class AutoEQManager {
             { name: 'HyperX Cloud Alpha', path: 'HyperX/HyperX Cloud Alpha' },
             { name: 'Apple AirPods Pro', path: 'Apple/Apple AirPods Pro' },
             { name: 'Beats Studio3 Wireless', path: 'Beats/Beats Studio3 Wireless' },
-            { name: 'Focal Clear', path: 'Focal/Focal Clear' }
+            { name: 'Focal Clear', path: 'Focal/Focal Clear' },
         ];
     }
 
@@ -99,17 +99,17 @@ export class AutoEQManager {
             // Fetch the parametric EQ file
             const url = `${this.GITHUB_RAW_BASE}/${headphonePath}/parametric eq.txt`;
             const response = await fetch(url);
-            
+
             if (!response.ok) {
                 throw new Error(`Failed to fetch preset: ${response.status}`);
             }
 
             const text = await response.text();
             const preset = this.parseParametricEQ(text);
-            
+
             // Cache the result
             this.cache.set(headphonePath, preset);
-            
+
             return preset;
         } catch (error) {
             console.error(`Failed to fetch AutoEQ preset for ${headphonePath}:`, error);
@@ -123,22 +123,24 @@ export class AutoEQManager {
     parseParametricEQ(text) {
         const lines = text.split('\n');
         const filters = [];
-        
+
         for (const line of lines) {
             // Parse lines like: "Filter 1: ON PK Fc 105 Hz Gain -3.9 dB Q 0.70"
-            const match = line.match(/Filter\s+\d+:\s+ON\s+(\w+)\s+Fc\s+([\d.]+)\s+Hz\s+Gain\s+([-\d.]+)\s+dB\s+Q\s+([\d.]+)/);
-            
+            const match = line.match(
+                /Filter\s+\d+:\s+ON\s+(\w+)\s+Fc\s+([\d.]+)\s+Hz\s+Gain\s+([-\d.]+)\s+dB\s+Q\s+([\d.]+)/
+            );
+
             if (match) {
                 const [, type, frequency, gain, q] = match;
                 filters.push({
                     type: type, // PK (peaking), LSQ (low shelf), HSQ (high shelf)
                     frequency: parseFloat(frequency),
                     gain: parseFloat(gain),
-                    q: parseFloat(q)
+                    q: parseFloat(q),
                 });
             }
         }
-        
+
         return filters;
     }
 
@@ -148,12 +150,12 @@ export class AutoEQManager {
     convertToGraphicEQ(parametricFilters, targetBands) {
         // Initialize gains array
         const gains = new Array(targetBands.length).fill(0);
-        
+
         // For each target band, calculate the combined effect of all parametric filters
         targetBands.forEach((band, index) => {
             let totalGain = 0;
-            
-            parametricFilters.forEach(filter => {
+
+            parametricFilters.forEach((filter) => {
                 // Calculate the gain contribution of this filter at the target frequency
                 const gain = this.calculateFilterResponse(
                     filter.frequency,
@@ -162,14 +164,14 @@ export class AutoEQManager {
                     band.frequency,
                     filter.type
                 );
-                
+
                 totalGain += gain;
             });
-            
+
             // Clamp to -12dB to +12dB
             gains[index] = Math.max(-12, Math.min(12, totalGain));
         });
-        
+
         return gains;
     }
 
@@ -184,7 +186,7 @@ export class AutoEQManager {
             }
             // Gradual rolloff above center frequency
             const ratio = Math.log(targetFreq / centerFreq) / Math.log(2);
-            return gain * Math.exp(-ratio * ratio / (2 * q * q));
+            return gain * Math.exp((-ratio * ratio) / (2 * q * q));
         } else if (type === 'HSQ') {
             // High shelf - affects frequencies above center
             if (targetFreq >= centerFreq) {
@@ -192,12 +194,12 @@ export class AutoEQManager {
             }
             // Gradual rolloff below center frequency
             const ratio = Math.log(centerFreq / targetFreq) / Math.log(2);
-            return gain * Math.exp(-ratio * ratio / (2 * q * q));
+            return gain * Math.exp((-ratio * ratio) / (2 * q * q));
         } else {
             // Peaking filter (PK)
             const ratio = Math.log(targetFreq / centerFreq) / Math.log(2);
-            const distance = ratio * ratio / (q * q);
-            
+            const distance = (ratio * ratio) / (q * q);
+
             // Bell curve response
             return gain * Math.exp(-distance);
         }
@@ -208,9 +210,7 @@ export class AutoEQManager {
      */
     searchHeadphones(query) {
         const lowerQuery = query.toLowerCase();
-        return this.headphonesList.filter(hp => 
-            hp.name.toLowerCase().includes(lowerQuery)
-        );
+        return this.headphonesList.filter((hp) => hp.name.toLowerCase().includes(lowerQuery));
     }
 
     /**

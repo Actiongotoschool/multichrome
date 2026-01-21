@@ -10,7 +10,7 @@ export class AudioEqualizer {
         this.filters = [];
         this.isEnabled = false;
         this.isInitialized = false;
-        
+
         // Default EQ settings
         this.bands = [
             { frequency: 60, gain: 0, q: 1.0, name: '60Hz' },
@@ -22,7 +22,7 @@ export class AudioEqualizer {
             { frequency: 6000, gain: 0, q: 1.0, name: '6kHz' },
             { frequency: 12000, gain: 0, q: 1.0, name: '12kHz' },
             { frequency: 14000, gain: 0, q: 1.0, name: '14kHz' },
-            { frequency: 16000, gain: 0, q: 1.0, name: '16kHz' }
+            { frequency: 16000, gain: 0, q: 1.0, name: '16kHz' },
         ];
 
         this.loadSettings();
@@ -54,11 +54,11 @@ export class AudioEqualizer {
 
             // Connect nodes: source -> filters -> gain -> destination
             this.sourceNode.connect(this.filters[0]);
-            
+
             for (let i = 0; i < this.filters.length - 1; i++) {
                 this.filters[i].connect(this.filters[i + 1]);
             }
-            
+
             this.filters[this.filters.length - 1].connect(this.gainNode);
             this.gainNode.connect(this.audioContext.destination);
 
@@ -72,18 +72,18 @@ export class AudioEqualizer {
 
     setGain(bandIndex, gain) {
         if (!this.isInitialized || !this.filters[bandIndex]) return;
-        
+
         // Clamp gain between -12 and +12 dB
         const clampedGain = Math.max(-12, Math.min(12, gain));
         this.filters[bandIndex].gain.value = clampedGain;
         this.bands[bandIndex].gain = clampedGain;
-        
+
         this.saveSettings();
     }
 
     setAllGains(gains) {
         if (!Array.isArray(gains) || gains.length !== this.bands.length) return;
-        
+
         gains.forEach((gain, index) => {
             this.setGain(index, gain);
         });
@@ -97,16 +97,16 @@ export class AudioEqualizer {
 
     applyPreset(presetName) {
         const presets = {
-            'flat': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            flat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             'bass-boost': [8, 6, 4, 2, 0, 0, 0, 0, 0, 0],
             'treble-boost': [0, 0, 0, 0, 0, 2, 4, 6, 8, 8],
             'vocal-boost': [0, 0, 2, 4, 6, 6, 4, 2, 0, 0],
-            'rock': [6, 4, 2, 0, -2, 0, 2, 4, 6, 6],
-            'pop': [2, 4, 6, 4, 0, 0, 2, 4, 6, 6],
-            'jazz': [4, 2, 0, 2, 4, 4, 2, 0, 2, 4],
-            'classical': [4, 2, 0, 0, 0, 0, 0, 2, 4, 6],
-            'electronic': [6, 4, 2, 0, 0, 2, 4, 6, 8, 8],
-            'hip-hop': [8, 6, 4, 2, 0, 0, 2, 4, 6, 6]
+            rock: [6, 4, 2, 0, -2, 0, 2, 4, 6, 6],
+            pop: [2, 4, 6, 4, 0, 0, 2, 4, 6, 6],
+            jazz: [4, 2, 0, 2, 4, 4, 2, 0, 2, 4],
+            classical: [4, 2, 0, 0, 0, 0, 0, 2, 4, 6],
+            electronic: [6, 4, 2, 0, 0, 2, 4, 6, 8, 8],
+            'hip-hop': [8, 6, 4, 2, 0, 0, 2, 4, 6, 6],
         };
 
         const preset = presets[presetName];
@@ -120,7 +120,7 @@ export class AudioEqualizer {
     }
 
     getAllGains() {
-        return this.bands.map(band => band.gain);
+        return this.bands.map((band) => band.gain);
     }
 
     getBands() {
@@ -131,7 +131,7 @@ export class AudioEqualizer {
         try {
             const settings = {
                 enabled: this.isEnabled,
-                gains: this.getAllGains()
+                gains: this.getAllGains(),
             };
             localStorage.setItem('equalizer-settings', JSON.stringify(settings));
         } catch (e) {
@@ -145,7 +145,7 @@ export class AudioEqualizer {
             if (saved) {
                 const settings = JSON.parse(saved);
                 this.isEnabled = settings.enabled || false;
-                
+
                 if (settings.gains && Array.isArray(settings.gains)) {
                     settings.gains.forEach((gain, index) => {
                         if (this.bands[index]) {
@@ -164,10 +164,10 @@ export class AudioEqualizer {
             console.warn('Equalizer not initialized');
             return;
         }
-        
+
         this.isEnabled = true;
         this.saveSettings();
-        
+
         // Resume audio context if suspended
         if (this.audioContext.state === 'suspended') {
             this.audioContext.resume();
