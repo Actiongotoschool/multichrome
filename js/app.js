@@ -23,6 +23,7 @@ import { syncManager } from './accounts/pocketbase.js';
 import { registerSW } from 'virtual:pwa-register';
 import './smooth-scrolling.js';
 import { readTrackMetadata } from './metadata.js';
+import { SpecialsManager } from './specials.js';
 
 function initializeCasting(audioPlayer, castBtn) {
     if (!castBtn) return;
@@ -193,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ui = new UIRenderer(api, player);
     const scrobbler = new LastFMScrobbler();
     const lyricsManager = new LyricsManager(api);
+    const specialsManager = new SpecialsManager(player, ui);
 
     // Check browser support for local files
     const selectLocalBtn = document.getElementById('select-local-folder-btn');
