@@ -6,6 +6,8 @@ export class CrossfadeManager {
         this.duration = 5; // Default 5 seconds
         this.fadeOutStarted = false;
         this.nextTrackPreloaded = false;
+        this.volumeMultiplier = 1.0; // For crossfade volume control
+        this.currentTrackId = null;
 
         // Storage keys
         this.ENABLED_KEY = 'crossfade-enabled';
@@ -64,15 +66,22 @@ export class CrossfadeManager {
 
         // Reset fade state when track changes
         this.player.audio.addEventListener('play', () => {
-            this.fadeOutStarted = false;
-            // Ensure audio is at full volume when starting
+            const newTrackId = this.player.currentTrack?.id;
+            if (newTrackId !== this.currentTrackId) {
+                this.currentTrackId = newTrackId;
+                this.fadeOutStarted = false;
+                this.nextTrackPreloaded = false;
+            }
+            // Ensure volume multiplier is reset when starting
             if (!this.fadingIn) {
-                this.player.audio.volume = this.player.userVolume;
+                this.volumeMultiplier = 1.0;
+                this.player.applyReplayGain();
             }
         });
 
         this.player.audio.addEventListener('ended', () => {
             this.fadeOutStarted = false;
+            this.nextTrackPreloaded = false;
         });
     }
 
@@ -90,24 +99,21 @@ export class CrossfadeManager {
 
     async startCrossfade() {
         this.fadeOutStarted = true;
-        const audio = this.player.audio;
-        const initialVolume = this.player.userVolume;
 
         // Calculate fade out
         const fadeSteps = 60; // 60 steps for smooth fade
         const fadeInterval = (this.duration * 1000) / fadeSteps;
-        const volumeStep = initialVolume / fadeSteps;
 
         let step = 0;
         const fadeOutInterval = setInterval(() => {
             step++;
-            const newVolume = Math.max(0, initialVolume - volumeStep * step);
-            audio.volume = newVolume;
+            this.volumeMultiplier = Math.max(0, 1.0 - step / fadeSteps);
+            this.player.applyReplayGain();
 
-            if (step >= fadeSteps || audio.paused || audio.ended) {
+            if (step >= fadeSteps || this.player.audio.paused || this.player.audio.ended) {
                 clearInterval(fadeOutInterval);
                 // Trigger next track
-                if (!audio.paused && !audio.ended) {
+                if (!this.player.audio.paused && !this.player.audio.ended) {
                     this.player.playNext();
                 }
             }
@@ -120,8 +126,9 @@ export class CrossfadeManager {
         }
 
         // Wait for next track to start, then fade in
+        const originalTrackId = this.currentTrackId;
         const waitForNextTrack = setInterval(() => {
-            if (this.player.currentTrack !== audio.dataset.trackId) {
+            if (this.currentTrackId !== originalTrackId) {
                 clearInterval(waitForNextTrack);
                 this.fadeIn();
             }
@@ -133,25 +140,24 @@ export class CrossfadeManager {
 
     fadeIn() {
         this.fadingIn = true;
-        const audio = this.player.audio;
-        const targetVolume = this.player.userVolume;
 
         // Start from 0
-        audio.volume = 0;
+        this.volumeMultiplier = 0;
+        this.player.applyReplayGain();
 
         const fadeSteps = 30;
         const fadeInterval = (this.duration * 1000) / fadeSteps;
-        const volumeStep = targetVolume / fadeSteps;
 
         let step = 0;
         const fadeInInterval = setInterval(() => {
             step++;
-            const newVolume = Math.min(targetVolume, volumeStep * step);
-            audio.volume = newVolume;
+            this.volumeMultiplier = Math.min(1.0, step / fadeSteps);
+            this.player.applyReplayGain();
 
-            if (step >= fadeSteps || audio.paused) {
+            if (step >= fadeSteps || this.player.audio.paused) {
                 clearInterval(fadeInInterval);
-                audio.volume = targetVolume;
+                this.volumeMultiplier = 1.0;
+                this.player.applyReplayGain();
                 this.fadingIn = false;
             }
         }, fadeInterval);

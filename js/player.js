@@ -26,6 +26,7 @@ export class Player {
         this.currentTrack = null;
         this.currentRgValues = null;
         this.userVolume = parseFloat(localStorage.getItem('volume') || '0.7');
+        this.crossfadeManager = null; // Will be set by SpecialsManager
 
         // Sleep timer properties
         this.sleepTimer = null;
@@ -86,7 +87,12 @@ export class Player {
         }
 
         // Calculate effective volume
-        const effectiveVolume = this.userVolume * scale;
+        let effectiveVolume = this.userVolume * scale;
+
+        // Apply crossfade volume multiplier if active
+        if (this.crossfadeManager && this.crossfadeManager.volumeMultiplier !== undefined) {
+            effectiveVolume *= this.crossfadeManager.volumeMultiplier;
+        }
 
         // Apply to audio element
         this.audio.volume = Math.max(0, Math.min(1, effectiveVolume));

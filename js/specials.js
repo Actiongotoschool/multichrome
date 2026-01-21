@@ -45,6 +45,7 @@ export class SpecialsManager {
 
         // Initialize Crossfade
         this.crossfade = new CrossfadeManager(this.player);
+        this.player.crossfadeManager = this.crossfade; // Set reference for volume control
         this.crossfade.init();
 
         // Toggle dropdown
