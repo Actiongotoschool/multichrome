@@ -112,7 +112,7 @@ export class Visualizer {
     }
 
     draw() {
-        if (!this.isActive || !this.canvasCtx) return;
+        if (!this.isActive || !this.canvasCtx || !this.analyser) return;
 
         this.animationId = requestAnimationFrame(() => this.draw());
 

@@ -148,6 +148,22 @@ export class SpecialsManager {
         }
     }
 
+    reconnectEqualizerToDestination() {
+        if (this.audioGraphInitialized && this.equalizer.getOutputNode() && this.audioContext) {
+            try {
+                // Disconnect first to avoid duplicates
+                this.equalizer.getOutputNode().disconnect();
+                // Then connect directly to destination
+                this.equalizer.getOutputNode().connect(this.audioContext.destination);
+            } catch (error) {
+                // Only ignore InvalidStateError (already disconnected/connected)
+                if (error.name !== 'InvalidStateError') {
+                    console.warn('Error reconnecting equalizer:', error);
+                }
+            }
+        }
+    }
+
     toggle() {
         if (this.isOpen) {
             this.close();
@@ -504,12 +520,12 @@ export class SpecialsManager {
                     await this.initializeAudioGraph();
                 }
 
-                // Disconnect equalizer from destination temporarily
-                this.equalizer.getOutputNode().disconnect();
-
                 // Initialize visualizer connected to equalizer output
                 await this.visualizer.init(this.audioContext, this.equalizer.getOutputNode());
                 
+                // Disconnect equalizer from destination
+                this.equalizer.getOutputNode().disconnect();
+
                 // Connect chain: equalizer -> visualizer -> destination
                 this.equalizer.getOutputNode().connect(this.visualizer.getOutputNode());
                 this.visualizer.getOutputNode().connect(this.audioContext.destination);
@@ -520,9 +536,7 @@ export class SpecialsManager {
             } catch (error) {
                 console.error('Failed to initialize visualizer:', error);
                 // Reconnect equalizer directly to destination on error
-                if (this.equalizer.getOutputNode()) {
-                    this.equalizer.getOutputNode().connect(this.audioContext.destination);
-                }
+                this.reconnectEqualizerToDestination();
                 container.innerHTML = `
                     <div style="padding: 2rem; text-align: center; color: white;">
                         <p>Failed to initialize visualizer.</p>
@@ -549,8 +563,11 @@ export class SpecialsManager {
             if (this.visualizer.getOutputNode() && this.audioContext) {
                 try {
                     this.visualizer.getOutputNode().disconnect();
-                } catch {
-                    // Already disconnected
+                } catch (error) {
+                    // Only ignore InvalidStateError (already disconnected)
+                    if (error.name !== 'InvalidStateError') {
+                        console.warn('Error disconnecting visualizer:', error);
+                    }
                 }
             }
             
@@ -569,16 +586,7 @@ export class SpecialsManager {
         }
 
         // Reconnect equalizer output directly to destination when visualizer closes
-        if (this.audioGraphInitialized && this.equalizer.getOutputNode()) {
-            try {
-                // Disconnect first to avoid duplicates
-                this.equalizer.getOutputNode().disconnect();
-                // Then connect directly to destination
-                this.equalizer.getOutputNode().connect(this.audioContext.destination);
-            } catch {
-                // Ignore connection errors
-            }
-        }
+        this.reconnectEqualizerToDestination();
 
         this.visualizerActive = false;
     }
