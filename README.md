@@ -1,16 +1,18 @@
 <p align="center">
-  <a href="https://monochrome.samidy.com">
-    <img src="https://github.com/SamidyFR/monochrome/blob/main/public/assets/512.png?raw=true" alt="Monochrome Logo" width="150px">
+  <a href="https://actiongotoschool.github.io/multichrome">
+    <img src="https://github.com/SamidyFR/monochrome/blob/main/public/assets/512.png?raw=true" alt="Multichrome Logo" width="150px">
   </a>
 </p>
 
-<h1 align="center">Monochrome</h1>
+<h1 align="center">Multichrome</h1>
 
-### **Monochrome** is an open-source, privacy-respecting, ad-free [TIDAL](https://tidal.com) web UI, built on top of [Hi-Fi](https://github.com/sachinsenal0x64/hifi).
+### **Multichrome** is an open-source, privacy-respecting, ad-free [TIDAL](https://tidal.com) web UI, built on top of [Hi-Fi](https://github.com/sachinsenal0x64/hifi).
+
+**Credits: Ketomine**
 
 <br>
 
-[<img src="https://files.catbox.moe/tpgxii.png" alt="Monochrome UI" width="800">](https://monochrome.samidy.com/#album/413189044)
+[<img src="https://files.catbox.moe/tpgxii.png" alt="Multichrome UI" width="800">](https://actiongotoschool.github.io/multichrome)
 
 ### Features
 
