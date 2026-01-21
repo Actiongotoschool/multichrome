@@ -28,16 +28,22 @@ export class AudioEqualizer {
         this.loadSettings();
     }
 
-    async init() {
+    async init(sharedAudioContext = null, sharedSourceNode = null) {
         if (this.isInitialized) return;
 
         try {
-            // Create audio context
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            this.audioContext = new AudioContext();
+            // Use shared context or create new one
+            if (sharedAudioContext) {
+                this.audioContext = sharedAudioContext;
+                this.sourceNode = sharedSourceNode;
+            } else {
+                // Create audio context
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.audioContext = new AudioContext();
 
-            // Create source node from audio element
-            this.sourceNode = this.audioContext.createMediaElementSource(this.audioElement);
+                // Create source node from audio element
+                this.sourceNode = this.audioContext.createMediaElementSource(this.audioElement);
+            }
 
             // Create gain node for overall volume
             this.gainNode = this.audioContext.createGain();
@@ -53,14 +59,22 @@ export class AudioEqualizer {
             });
 
             // Connect nodes: source -> filters -> gain -> destination
-            this.sourceNode.connect(this.filters[0]);
+            // Only connect from source if we created it
+            if (!sharedSourceNode) {
+                this.sourceNode.connect(this.filters[0]);
+            } else {
+                // When using shared source, connection is managed externally
+            }
 
             for (let i = 0; i < this.filters.length - 1; i++) {
                 this.filters[i].connect(this.filters[i + 1]);
             }
 
             this.filters[this.filters.length - 1].connect(this.gainNode);
-            this.gainNode.connect(this.audioContext.destination);
+            // Don't auto-connect to destination when using shared context
+            if (!sharedAudioContext) {
+                this.gainNode.connect(this.audioContext.destination);
+            }
 
             this.isInitialized = true;
             console.log('✓ Equalizer initialized');
@@ -125,6 +139,14 @@ export class AudioEqualizer {
 
     getBands() {
         return this.bands;
+    }
+
+    getInputNode() {
+        return this.isInitialized ? this.filters[0] : null;
+    }
+
+    getOutputNode() {
+        return this.isInitialized ? this.gainNode : null;
     }
 
     saveSettings() {
