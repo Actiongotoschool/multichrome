@@ -1,6 +1,6 @@
 {
     "tag-pair": true,
-    "tagname-lowercase": true,
+    "tagname-lowercase": false,
     "attr-lowercase": true,
     "attr-value-double-quotes": true,
     "doctype-first": true,
