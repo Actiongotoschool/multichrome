@@ -251,6 +251,60 @@ export function initializeSettings(scrobbler, player, api, ui) {
         renderCustomThemeEditor();
     });
 
+    // Lyrics Font picker
+    const lyricsFontPicker = document.getElementById('lyrics-font-picker');
+    if (lyricsFontPicker) {
+        const currentFont = lyricsSettings.getFont();
+        
+        lyricsFontPicker.querySelectorAll('.theme-option').forEach((option) => {
+            if (option.dataset.font === currentFont) {
+                option.classList.add('active');
+            }
+
+            option.addEventListener('click', () => {
+                const font = option.dataset.font;
+                
+                lyricsFontPicker.querySelectorAll('.theme-option').forEach((opt) => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                lyricsSettings.setFont(font);
+                
+                // Apply to lyrics panel immediately if visible
+                const lyricsPanel = document.querySelector('.lyrics-panel');
+                if (lyricsPanel) {
+                    lyricsPanel.setAttribute('data-font-style', font);
+                }
+            });
+        });
+    }
+
+    // Lyrics Glow picker
+    const lyricsGlowPicker = document.getElementById('lyrics-glow-picker');
+    if (lyricsGlowPicker) {
+        const currentGlow = lyricsSettings.getGlow();
+        
+        lyricsGlowPicker.querySelectorAll('.theme-option').forEach((option) => {
+            if (option.dataset.glow === currentGlow) {
+                option.classList.add('active');
+            }
+
+            option.addEventListener('click', () => {
+                const glow = option.dataset.glow;
+                
+                lyricsGlowPicker.querySelectorAll('.theme-option').forEach((opt) => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                lyricsSettings.setGlow(glow);
+                
+                // Apply to lyrics panel immediately if visible
+                const lyricsPanel = document.querySelector('.lyrics-panel');
+                if (lyricsPanel) {
+                    lyricsPanel.setAttribute('data-glow', glow);
+                }
+            });
+        });
+    }
+
     // Streaming Quality setting
     const streamingQualitySetting = document.getElementById('streaming-quality-setting');
     if (streamingQualitySetting) {

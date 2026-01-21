@@ -1,6 +1,7 @@
 //js/lyrics.js
 import { getTrackTitle, getTrackArtists, buildTrackFilename, SVG_CLOSE } from './utils.js';
 import { sidePanelManager } from './side-panel.js';
+import { lyricsSettings } from './storage.js';
 
 export class LyricsManager {
     constructor(api) {
@@ -556,6 +557,14 @@ export function openLyricsPanel(track, audioPlayer, lyricsManager, forceOpen = f
     };
 
     sidePanelManager.open('lyrics', 'Lyrics', renderControls, renderContent, forceOpen);
+    
+    // Apply lyrics settings
+    const lyricsPanel = sidePanelManager.panel.querySelector('.panel-content');
+    if (lyricsPanel) {
+        lyricsPanel.classList.add('lyrics-panel');
+        lyricsPanel.setAttribute('data-font-style', lyricsSettings.getFont());
+        lyricsPanel.setAttribute('data-glow', lyricsSettings.getGlow());
+    }
 }
 
 async function renderLyricsComponent(container, track, audioPlayer, lyricsManager) {
