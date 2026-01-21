@@ -194,7 +194,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ui = new UIRenderer(api, player);
     const scrobbler = new LastFMScrobbler();
     const lyricsManager = new LyricsManager(api);
-    const specialsManager = new SpecialsManager(player, ui);
+    // Initialize special features manager
+    new SpecialsManager(player, ui);
 
     // Check browser support for local files
     const selectLocalBtn = document.getElementById('select-local-folder-btn');

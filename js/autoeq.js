@@ -39,16 +39,10 @@ export class AutoEQManager {
                 throw new Error(`GitHub API error: ${response.status}`);
             }
 
-            const data = await response.json();
-
-            // Get all directories (manufacturers)
-            const manufacturers = data.filter((item) => item.type === 'dir');
-
-            // Build list of headphones
-            const headphones = [];
-
             // For now, we'll create a simplified list based on known popular models
-            // In production, you'd want to recursively fetch all subdirectories
+            // In production, you'd want to recursively fetch all subdirectories from:
+            // const data = await response.json();
+            // const manufacturers = data.filter((item) => item.type === 'dir');
             const popularHeadphones = this.getPopularHeadphones();
 
             this.headphonesList = popularHeadphones;

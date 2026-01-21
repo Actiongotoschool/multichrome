@@ -165,7 +165,7 @@ export class SpecialsManager {
             if (!this.equalizer.isInitialized) {
                 try {
                     await this.equalizer.init();
-                } catch (error) {
+                } catch {
                     container.innerHTML = `
                         <div style="padding: 2rem; text-align: center; color: var(--muted-foreground);">
                             <p>Failed to initialize equalizer. Your browser may not support the Web Audio API.</p>
