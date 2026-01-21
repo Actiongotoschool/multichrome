@@ -429,6 +429,8 @@ export const nowPlayingSettings = {
 
 export const lyricsSettings = {
     DOWNLOAD_WITH_TRACKS: 'lyrics-download-with-tracks',
+    FONT_STORAGE_KEY: 'multichrome-lyrics-font',
+    GLOW_STORAGE_KEY: 'multichrome-lyrics-glow',
 
     shouldDownloadLyrics() {
         try {
@@ -440,6 +442,30 @@ export const lyricsSettings = {
 
     setDownloadLyrics(enabled) {
         localStorage.setItem(this.DOWNLOAD_WITH_TRACKS, enabled ? 'true' : 'false');
+    },
+
+    getFont() {
+        try {
+            return localStorage.getItem(this.FONT_STORAGE_KEY) || 'default';
+        } catch {
+            return 'default';
+        }
+    },
+
+    setFont(font) {
+        localStorage.setItem(this.FONT_STORAGE_KEY, font);
+    },
+
+    getGlow() {
+        try {
+            return localStorage.getItem(this.GLOW_STORAGE_KEY) || 'soft';
+        } catch {
+            return 'soft';
+        }
+    },
+
+    setGlow(glow) {
+        localStorage.setItem(this.GLOW_STORAGE_KEY, glow);
     },
 };
 
@@ -644,32 +670,3 @@ if (typeof window !== 'undefined' && window.matchMedia) {
         }
     });
 }
-
-export const lyricsSettings = {
-    FONT_STORAGE_KEY: 'multichrome-lyrics-font',
-    GLOW_STORAGE_KEY: 'multichrome-lyrics-glow',
-
-    getFont() {
-        try {
-            return localStorage.getItem(this.FONT_STORAGE_KEY) || 'default';
-        } catch {
-            return 'default';
-        }
-    },
-
-    setFont(font) {
-        localStorage.setItem(this.FONT_STORAGE_KEY, font);
-    },
-
-    getGlow() {
-        try {
-            return localStorage.getItem(this.GLOW_STORAGE_KEY) || 'soft';
-        } catch {
-            return 'soft';
-        }
-    },
-
-    setGlow(glow) {
-        localStorage.setItem(this.GLOW_STORAGE_KEY, glow);
-    },
-};
