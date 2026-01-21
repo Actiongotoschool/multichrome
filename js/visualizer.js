@@ -70,8 +70,6 @@ export class Visualizer {
     async start(container) {
         if (this.isActive) return;
 
-        await this.init();
-
         // Create canvas
         this.canvas = document.createElement('canvas');
         this.canvas.className = 'visualizer-canvas';

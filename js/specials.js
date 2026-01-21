@@ -504,10 +504,14 @@ export class SpecialsManager {
                     await this.initializeAudioGraph();
                 }
 
+                // Disconnect equalizer from destination temporarily
+                this.equalizer.getOutputNode().disconnect();
+
                 // Initialize visualizer connected to equalizer output
                 await this.visualizer.init(this.audioContext, this.equalizer.getOutputNode());
                 
-                // Connect visualizer to destination to keep audio flowing
+                // Connect chain: equalizer -> visualizer -> destination
+                this.equalizer.getOutputNode().connect(this.visualizer.getOutputNode());
                 this.visualizer.getOutputNode().connect(this.audioContext.destination);
                 
                 // Start visualization
@@ -515,6 +519,10 @@ export class SpecialsManager {
                 this.visualizerActive = true;
             } catch (error) {
                 console.error('Failed to initialize visualizer:', error);
+                // Reconnect equalizer directly to destination on error
+                if (this.equalizer.getOutputNode()) {
+                    this.equalizer.getOutputNode().connect(this.audioContext.destination);
+                }
                 container.innerHTML = `
                     <div style="padding: 2rem; text-align: center; color: white;">
                         <p>Failed to initialize visualizer.</p>
@@ -541,7 +549,7 @@ export class SpecialsManager {
             if (this.visualizer.getOutputNode() && this.audioContext) {
                 try {
                     this.visualizer.getOutputNode().disconnect();
-                } catch (e) {
+                } catch {
                     // Already disconnected
                 }
             }
@@ -563,10 +571,12 @@ export class SpecialsManager {
         // Reconnect equalizer output directly to destination when visualizer closes
         if (this.audioGraphInitialized && this.equalizer.getOutputNode()) {
             try {
+                // Disconnect first to avoid duplicates
                 this.equalizer.getOutputNode().disconnect();
+                // Then connect directly to destination
                 this.equalizer.getOutputNode().connect(this.audioContext.destination);
-            } catch (e) {
-                // Already connected
+            } catch {
+                // Ignore connection errors
             }
         }
 
