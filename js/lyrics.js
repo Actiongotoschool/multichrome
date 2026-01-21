@@ -557,7 +557,7 @@ export function openLyricsPanel(track, audioPlayer, lyricsManager, forceOpen = f
     };
 
     sidePanelManager.open('lyrics', 'Lyrics', renderControls, renderContent, forceOpen);
-    
+
     // Apply lyrics settings
     const lyricsPanel = sidePanelManager.panel.querySelector('.panel-content');
     if (lyricsPanel) {

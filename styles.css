@@ -218,8 +218,8 @@
     --explicit-badge: #ff006e;
     --gradient-primary: linear-gradient(135deg, #ff006e 0%, #8338ec 50%, #3a86ff 100%);
     --gradient-secondary: linear-gradient(135deg, #fb5607 0%, #ffbe0b 100%);
-    --glow-color: rgba(131, 56, 236, 0.5);
-    --glow-color-2: rgba(255, 0, 110, 0.5);
+    --glow-color: rgb(131, 56, 236, 0.5);
+    --glow-color-2: rgb(255, 0, 110, 0.5);
 }
 
 :root[data-theme='latte'] {
@@ -4196,20 +4196,20 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
 
 /* Lyrics Font Styles */
 .lyrics-panel[data-font-style='default'] .synced-line {
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
 }
 
 .lyrics-panel[data-font-style='serif'] .synced-line {
-    font-family: 'Georgia', 'Times New Roman', serif;
+    font-family: Georgia, 'Times New Roman', serif;
 }
 
 .lyrics-panel[data-font-style='mono'] .synced-line {
-    font-family: 'Monaco', 'Courier New', monospace;
+    font-family: Monaco, 'Courier New', monospace;
     letter-spacing: 0.05em;
 }
 
 .lyrics-panel[data-font-style='rounded'] .synced-line {
-    font-family: 'Quicksand', 'Nunito', 'Comfortaa', sans-serif;
+    font-family: Quicksand, Nunito, Comfortaa, sans-serif;
     font-weight: 500;
 }
 
@@ -4225,36 +4225,42 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
 }
 
 .lyrics-panel[data-glow='soft'] .synced-line.active {
-    text-shadow: 0 0 10px rgb(var(--highlight-rgb), 0.4),
-                 0 0 20px rgb(var(--highlight-rgb), 0.2);
+    text-shadow:
+        0 0 10px rgb(var(--highlight-rgb), 0.4),
+        0 0 20px rgb(var(--highlight-rgb), 0.2);
 }
 
 .lyrics-panel[data-glow='medium'] .synced-line.active {
-    text-shadow: 0 0 15px rgb(var(--highlight-rgb), 0.6),
-                 0 0 30px rgb(var(--highlight-rgb), 0.4),
-                 0 0 45px rgb(var(--highlight-rgb), 0.2);
+    text-shadow:
+        0 0 15px rgb(var(--highlight-rgb), 0.6),
+        0 0 30px rgb(var(--highlight-rgb), 0.4),
+        0 0 45px rgb(var(--highlight-rgb), 0.2);
 }
 
 .lyrics-panel[data-glow='strong'] .synced-line.active {
-    text-shadow: 0 0 20px rgb(var(--highlight-rgb), 0.8),
-                 0 0 40px rgb(var(--highlight-rgb), 0.6),
-                 0 0 60px rgb(var(--highlight-rgb), 0.4),
-                 0 0 80px rgb(var(--highlight-rgb), 0.2);
+    text-shadow:
+        0 0 20px rgb(var(--highlight-rgb), 0.8),
+        0 0 40px rgb(var(--highlight-rgb), 0.6),
+        0 0 60px rgb(var(--highlight-rgb), 0.4),
+        0 0 80px rgb(var(--highlight-rgb), 0.2);
     animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .lyrics-panel[data-glow='rainbow'] .synced-line.active {
-    text-shadow: 0 0 10px rgba(255, 0, 110, 0.5),
-                 0 0 20px rgba(131, 56, 236, 0.5),
-                 0 0 30px rgba(58, 134, 255, 0.5),
-                 0 0 40px rgba(251, 86, 7, 0.3);
+    text-shadow:
+        0 0 10px rgb(255, 0, 110, 0.5),
+        0 0 20px rgb(131, 56, 236, 0.5),
+        0 0 30px rgb(58, 134, 255, 0.5),
+        0 0 40px rgb(251, 86, 7, 0.3);
     animation: rainbow-glow 3s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
-    0%, 100% {
+    0%,
+    100% {
         filter: brightness(1);
     }
+
     50% {
         filter: brightness(1.2);
     }
@@ -4262,24 +4268,30 @@ body:has(#fullscreen-cover-overlay:not([style*='display: none'])) .now-playing-b
 
 @keyframes rainbow-glow {
     0% {
-        text-shadow: 0 0 10px rgba(255, 0, 110, 0.5),
-                     0 0 20px rgba(131, 56, 236, 0.5),
-                     0 0 30px rgba(58, 134, 255, 0.5);
+        text-shadow:
+            0 0 10px rgb(255, 0, 110, 0.5),
+            0 0 20px rgb(131, 56, 236, 0.5),
+            0 0 30px rgb(58, 134, 255, 0.5);
     }
+
     33% {
-        text-shadow: 0 0 10px rgba(131, 56, 236, 0.5),
-                     0 0 20px rgba(58, 134, 255, 0.5),
-                     0 0 30px rgba(255, 0, 110, 0.5);
+        text-shadow:
+            0 0 10px rgb(131, 56, 236, 0.5),
+            0 0 20px rgb(58, 134, 255, 0.5),
+            0 0 30px rgb(255, 0, 110, 0.5);
     }
+
     66% {
-        text-shadow: 0 0 10px rgba(58, 134, 255, 0.5),
-                     0 0 20px rgba(255, 0, 110, 0.5),
-                     0 0 30px rgba(131, 56, 236, 0.5);
+        text-shadow:
+            0 0 10px rgb(58, 134, 255, 0.5),
+            0 0 20px rgb(255, 0, 110, 0.5),
+            0 0 30px rgb(131, 56, 236, 0.5);
     }
+
     100% {
-        text-shadow: 0 0 10px rgba(255, 0, 110, 0.5),
-                     0 0 20px rgba(131, 56, 236, 0.5),
-                     0 0 30px rgba(58, 134, 255, 0.5);
+        text-shadow:
+            0 0 10px rgb(255, 0, 110, 0.5),
+            0 0 20px rgb(131, 56, 236, 0.5),
+            0 0 30px rgb(58, 134, 255, 0.5);
     }
 }
-
