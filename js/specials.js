@@ -88,15 +88,18 @@ export class SpecialsManager {
         });
 
         // Update tracking when track changes
-        const originalPlay = this.player.play.bind(this.player);
-        this.player.play = (track) => {
-            this.listeningStats.stopTracking();
-            const result = originalPlay(track);
-            if (track) {
-                this.listeningStats.startTracking(track);
-            }
-            return result;
-        };
+        // Only wrap the play method if it exists
+        if (this.player.play && typeof this.player.play === 'function') {
+            const originalPlay = this.player.play.bind(this.player);
+            this.player.play = (track) => {
+                this.listeningStats.stopTracking();
+                const result = originalPlay(track);
+                if (track) {
+                    this.listeningStats.startTracking(track);
+                }
+                return result;
+            };
+        }
     }
 
     toggle() {

@@ -1,12 +1,11 @@
 // js/firebase/config.js
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-
+// Use dynamic imports to avoid blocking app load if Firebase CDN is unavailable
 let app = null;
 let auth = null;
 let database = null;
 let provider = null;
+let firebaseLoaded = false;
+let firebaseLoadPromise = null;
 
 const STORAGE_KEY = 'monochrome-firebase-config';
 
@@ -29,22 +28,42 @@ function getStoredConfig() {
     }
 }
 
-// Attempt to initialize on load
-const storedConfig = getStoredConfig();
-const config = storedConfig || DEFAULT_CONFIG;
+// Lazy initialization using dynamic imports
+async function initializeFirebase() {
+    if (firebaseLoaded) return { app, auth, database, provider };
+    if (firebaseLoadPromise) return firebaseLoadPromise;
 
-if (config) {
-    try {
-        app = initializeApp(config);
-        auth = getAuth(app);
-        database = getDatabase(app);
-        provider = new GoogleAuthProvider();
-        console.log('Firebase initialized from ' + (storedConfig ? 'saved' : 'default') + ' config');
-    } catch (error) {
-        console.error('Error initializing Firebase:', error);
-    }
-} else {
-    console.log('No Firebase config found.');
+    firebaseLoadPromise = (async () => {
+        try {
+            const storedConfig = getStoredConfig();
+            const config = storedConfig || DEFAULT_CONFIG;
+
+            if (!config) {
+                console.log('No Firebase config found.');
+                return { app: null, auth: null, database: null, provider: null };
+            }
+
+            const [firebaseApp, firebaseAuth, firebaseDatabase] = await Promise.all([
+                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'),
+                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js'),
+                import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js'),
+            ]);
+
+            app = firebaseApp.initializeApp(config);
+            auth = firebaseAuth.getAuth(app);
+            database = firebaseDatabase.getDatabase(app);
+            provider = new firebaseAuth.GoogleAuthProvider();
+            firebaseLoaded = true;
+            console.log('Firebase initialized from ' + (storedConfig ? 'saved' : 'default') + ' config');
+            return { app, auth, database, provider };
+        } catch (error) {
+            console.warn('Firebase not available:', error.message);
+            firebaseLoaded = false;
+            return { app: null, auth: null, database: null, provider: null };
+        }
+    })();
+
+    return firebaseLoadPromise;
 }
 
 export function saveFirebaseConfig(configObj) {
@@ -239,4 +258,4 @@ export function initializeFirebaseSettingsUI() {
     }
 }
 
-export { app, auth, database, provider };
+export { app, auth, database, provider, initializeFirebase };
