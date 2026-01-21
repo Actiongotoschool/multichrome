@@ -9,6 +9,7 @@ export class Visualizer {
         this.analyser = null;
         this.audioContext = null;
         this.source = null;
+        this.inputNode = null; // For shared audio graph
         this.dataArray = null;
         this.bufferLength = null;
         this.visualizationStyle = 'bars'; // 'bars', 'waveform', 'circular'
@@ -19,12 +20,17 @@ export class Visualizer {
         };
     }
 
-    async init() {
+    async init(sharedAudioContext = null, connectFromNode = null) {
         if (this.audioContext) return;
 
         try {
-            // Create audio context
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (sharedAudioContext) {
+                // Use shared context
+                this.audioContext = sharedAudioContext;
+            } else {
+                // Create audio context
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
 
             // Create analyser node
             this.analyser = this.audioContext.createAnalyser();
@@ -33,7 +39,12 @@ export class Visualizer {
             this.dataArray = new Uint8Array(this.bufferLength);
 
             // Connect audio element to analyser
-            if (!this.source) {
+            if (connectFromNode) {
+                // Connect from provided node (e.g., equalizer output)
+                this.inputNode = connectFromNode;
+                connectFromNode.connect(this.analyser);
+            } else if (!this.source) {
+                // Create our own source
                 this.source = this.audioContext.createMediaElementSource(this.audio);
                 this.source.connect(this.analyser);
                 this.analyser.connect(this.audioContext.destination);
@@ -50,6 +61,10 @@ export class Visualizer {
 
     setColors(colors) {
         this.colors = { ...this.colors, ...colors };
+    }
+
+    getOutputNode() {
+        return this.analyser;
     }
 
     async start(container) {

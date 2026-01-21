@@ -20,6 +20,11 @@ export class SpecialsManager {
         this.visualizer = null;
         this.visualizerActive = false;
         this.crossfade = null;
+        
+        // Shared audio routing
+        this.audioContext = null;
+        this.sourceNode = null;
+        this.audioGraphInitialized = false;
 
         this.init();
     }
@@ -112,6 +117,37 @@ export class SpecialsManager {
         }
     }
 
+    async initializeAudioGraph() {
+        if (this.audioGraphInitialized) return;
+
+        try {
+            // Create audio context
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.audioContext = new AudioContext();
+
+            // Create source node from audio element
+            this.sourceNode = this.audioContext.createMediaElementSource(this.player.audio);
+
+            // Initialize equalizer with shared context
+            await this.equalizer.init(this.audioContext, this.sourceNode);
+
+            // Connect the audio graph: source -> equalizer -> destination
+            this.sourceNode.connect(this.equalizer.getInputNode());
+            this.equalizer.getOutputNode().connect(this.audioContext.destination);
+
+            this.audioGraphInitialized = true;
+            console.log('✓ Shared audio graph initialized');
+
+            // Resume context if suspended
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+        } catch (error) {
+            console.error('Failed to initialize audio graph:', error);
+            throw error;
+        }
+    }
+
     toggle() {
         if (this.isOpen) {
             this.close();
@@ -174,10 +210,10 @@ export class SpecialsManager {
         };
 
         const renderContent = async (container) => {
-            // Initialize equalizer if not already initialized
-            if (!this.equalizer.isInitialized) {
+            // Initialize audio graph if not already initialized
+            if (!this.audioGraphInitialized) {
                 try {
-                    await this.equalizer.init();
+                    await this.initializeAudioGraph();
                 } catch {
                     container.innerHTML = `
                         <div style="padding: 2rem; text-align: center; color: var(--muted-foreground);">
@@ -458,10 +494,37 @@ export class SpecialsManager {
         // Add to body
         document.body.appendChild(container);
 
-        // Initialize visualizer
+        // Initialize visualizer with shared audio graph
         this.visualizer = new Visualizer(this.player.audio);
-        this.visualizer.start(container);
-        this.visualizerActive = true;
+        
+        // Initialize audio graph if needed
+        const initAndStart = async () => {
+            try {
+                if (!this.audioGraphInitialized) {
+                    await this.initializeAudioGraph();
+                }
+
+                // Initialize visualizer connected to equalizer output
+                await this.visualizer.init(this.audioContext, this.equalizer.getOutputNode());
+                
+                // Connect visualizer to destination to keep audio flowing
+                this.visualizer.getOutputNode().connect(this.audioContext.destination);
+                
+                // Start visualization
+                this.visualizer.start(container);
+                this.visualizerActive = true;
+            } catch (error) {
+                console.error('Failed to initialize visualizer:', error);
+                container.innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: white;">
+                        <p>Failed to initialize visualizer.</p>
+                        <button onclick="this.closest('.visualizer-fullscreen').remove()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 4px; cursor: pointer;">Close</button>
+                    </div>
+                `;
+            }
+        };
+        
+        initAndStart();
 
         // Close on Escape key
         this.visualizerEscapeHandler = (e) => {
@@ -474,6 +537,15 @@ export class SpecialsManager {
 
     closeVisualizer() {
         if (this.visualizer) {
+            // Disconnect visualizer from audio graph
+            if (this.visualizer.getOutputNode() && this.audioContext) {
+                try {
+                    this.visualizer.getOutputNode().disconnect();
+                } catch (e) {
+                    // Already disconnected
+                }
+            }
+            
             this.visualizer.stop();
             this.visualizer = null;
         }
@@ -486,6 +558,16 @@ export class SpecialsManager {
         if (this.visualizerEscapeHandler) {
             document.removeEventListener('keydown', this.visualizerEscapeHandler);
             this.visualizerEscapeHandler = null;
+        }
+
+        // Reconnect equalizer output directly to destination when visualizer closes
+        if (this.audioGraphInitialized && this.equalizer.getOutputNode()) {
+            try {
+                this.equalizer.getOutputNode().disconnect();
+                this.equalizer.getOutputNode().connect(this.audioContext.destination);
+            } catch (e) {
+                // Already connected
+            }
         }
 
         this.visualizerActive = false;
