@@ -276,8 +276,66 @@ export class SpecialsManager {
     }
 
     openCrossfade() {
-        // TODO: Implement crossfade settings
-        alert('Crossfade feature coming soon! This will enable smooth transitions between tracks.');
+        this.showFeatureNotImplemented(
+            'Crossfade',
+            'Crossfade will enable smooth transitions between tracks with configurable overlap duration.',
+            [
+                'Adjustable crossfade duration (1-12 seconds)',
+                'Fade in/out curves',
+                'Smart crossfade (analyzes track endings)',
+                'Enable/disable per session'
+            ]
+        );
+    }
+
+    openVisualizer() {
+        this.showFeatureNotImplemented(
+            'Full-Screen Visualizer',
+            'An immersive audio-reactive visualizer will display beautiful animations synchronized to your music.',
+            [
+                'Multiple visualization styles',
+                'Beat detection and bass response',
+                'Color themes matching album art',
+                'Fullscreen mode'
+            ]
+        );
+    }
+
+    showFeatureNotImplemented(title, description, features) {
+        const featuresHTML = features ? `
+            <div style="margin-top: 1rem;">
+                <strong style="display: block; margin-bottom: 0.5rem; color: var(--foreground);">Planned features:</strong>
+                <ul style="margin: 0; padding-left: 1.5rem; color: var(--muted-foreground);">
+                    ${features.map(f => `<li style="margin: 0.25rem 0;">${f}</li>`).join('')}
+                </ul>
+            </div>
+        ` : '';
+
+        const content = `
+            <div style="padding: 1rem;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="width: 60px; height: 60px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted-foreground)" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4"></path>
+                            <path d="M12 8h.01"></path>
+                        </svg>
+                    </div>
+                    <div style="text-align: center;">
+                        <h3 style="margin: 0 0 0.5rem 0;">Feature Coming Soon</h3>
+                        <p style="color: var(--muted-foreground); margin: 0;">${description}</p>
+                    </div>
+                </div>
+                ${featuresHTML}
+                <div style="margin-top: 1.5rem; padding: 1rem; background: var(--secondary); border-radius: var(--radius); border-left: 3px solid var(--primary);">
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--muted-foreground);">
+                        <strong style="color: var(--foreground);">Stay tuned!</strong> This feature is under development and will be available in a future update.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        this.showModal(title, content);
     }
 
     openAudioStats() {
@@ -330,11 +388,6 @@ export class SpecialsManager {
 
         // Create modal
         this.showModal('Audio Statistics', statsHTML);
-    }
-
-    openVisualizer() {
-        // TODO: Implement full-screen visualizer
-        alert('Full-screen Visualizer coming soon! This will display audio-reactive animations.');
     }
 
     openListeningStats() {
