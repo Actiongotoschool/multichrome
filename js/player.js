@@ -234,7 +234,7 @@ export class Player {
                 }
             } catch (error) {
                 lastError = error;
-                console.debug(`Failed to get track in ${quality} quality:`, error.message);
+                // Failed to get track in this quality, try next
             }
         }
 
@@ -352,7 +352,7 @@ export class Player {
                 await this.audio.play();
             } else {
                 // Try to get track data with quality fallback
-                const { trackData, actualQuality } = await this.getTrackWithFallback(track.id);
+                const { trackData } = await this.getTrackWithFallback(track.id);
 
                 if (trackData && trackData.info) {
                     this.currentRgValues = {

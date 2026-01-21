@@ -205,7 +205,7 @@ export class Visualizer {
         }
     }
 
-    extractColorsFromImage(imageUrl) {
+    extractColorsFromImage(_imageUrl) {
         // This would use a library like Vibrant.js to extract colors from album art
         // For now, we'll just use the default colors
         return new Promise((resolve) => {
